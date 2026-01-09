@@ -124,3 +124,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 # settings.py
 LOGIN_URL = 'login'
+
+import os # Make sure 'import os' is at the top of the file, or add it here
+
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
