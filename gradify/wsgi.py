@@ -1,16 +1,11 @@
-"""
-WSGI config for gradify project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
-"""
-
-import os
-
+# Your good Django code...
 from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()   # ← this sets application to Django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gradify.settings')
+# ... then later this overrides it completely!
+from flask import Flask
+application = Flask(__name__)          # ← now application is a Flask app!
 
-application = get_wsgi_application()
+@application.route('/')                # ← and this defines the default route
+def hello_world():
+    return """ <html> ... Hello, World! ... """
