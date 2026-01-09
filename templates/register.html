@@ -1,0 +1,319 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gradify | Register</title>
+
+  <style>
+    :root{
+      --bg: #0b1220;
+      --card: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.14);
+      --text: #eaf0ff;
+      --muted: rgba(234,240,255,0.7);
+      --accent: #8b5cf6;
+      --accent2: #22c55e;
+      --accent3: #3b82f6;
+      --shadow: 0 18px 60px rgba(0,0,0,0.35);
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(139,92,246,0.35), transparent 55%),
+        radial-gradient(1000px 500px at 85% 20%, rgba(59,130,246,0.35), transparent 55%),
+        radial-gradient(900px 500px at 60% 95%, rgba(34,197,94,0.25), transparent 60%),
+        linear-gradient(180deg, #070b14, #0b1220);
+      padding: 40px 16px;
+    }
+
+    .wrap{
+      width: 100%;
+      max-width: 980px;
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 26px;
+      align-items: stretch;
+    }
+
+    .left{
+      padding: 28px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 14px 50px rgba(0,0,0,0.25);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .logo{
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6, #22c55e);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 900;
+      color: #0b1220;
+      letter-spacing: -1px;
+      user-select:none;
+    }
+
+    .brand-name{
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.6px;
+    }
+
+    .pitch{
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 480px;
+      font-size: 14px;
+    }
+
+    .bullets{
+      margin-top: 18px;
+      display:grid;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .bullet{
+      display:flex;
+      gap: 10px;
+      align-items:flex-start;
+    }
+    .dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin-top: 6px;
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      flex: 0 0 10px;
+    }
+
+    .card{
+      padding: 28px 26px;
+      border-radius: 22px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .title{
+      font-size: 22px;
+      font-weight: 900;
+      text-align:center;
+      margin: 0;
+      letter-spacing: -0.4px;
+    }
+
+    .sub{
+      margin: 10px 0 18px;
+      text-align:center;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    form{ display:grid; gap: 14px; }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(234,240,255,0.85);
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    input{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+
+    input::placeholder{ color: rgba(234,240,255,0.45); }
+
+    input:focus{
+      border-color: rgba(139,92,246,0.7);
+      box-shadow: 0 0 0 4px rgba(139,92,246,0.18);
+    }
+
+    .error{
+      display:none;
+      padding: 12px 12px;
+      border-radius: 14px;
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: #fecaca;
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .btn{
+      width: 100%;
+      border: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 900;
+      font-size: 14px;
+      color: #0b1220;
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6, #22c55e);
+      transition: transform 0.08s ease;
+    }
+    .btn:active{ transform: scale(0.98); }
+
+    .footer{
+      margin-top: 14px;
+      text-align:center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer a{
+      color: #c4b5fd;
+      text-decoration: none;
+      font-weight: 800;
+    }
+    .footer a:hover{ text-decoration: underline; }
+
+    @media (max-width: 920px){
+      .wrap{ grid-template-columns: 1fr; }
+      .left{ order: 2; }
+      .card{ order: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="left">
+      <div class="brand">
+        <div class="logo">G</div>
+        <div>
+          <div class="brand-name">Gradify</div>
+          <p class="pitch">
+            Track your scores, stay consistent, and watch your improvement compound over time.
+            Built for students who want clean progress — not stress.
+          </p>
+        </div>
+      </div>
+
+      <div class="bullets">
+        <div class="bullet"><span class="dot"></span><span>One account, one dashboard, clear progress.</span></div>
+        <div class="bullet"><span class="dot"></span><span>Practice sessions become measurable results.</span></div>
+        <div class="bullet"><span class="dot"></span><span>Clean UI, distraction-free learning.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h1 class="title">Create an Account</h1>
+      <p class="sub">Join <strong>Gradify</strong> and start tracking your learning progress.</p>
+
+      <div class="error" id="errorBox"></div>
+
+      <form id="registerForm" method="post" action="">
+        {% csrf_token %}
+
+        <div class="row">
+          <div>
+            <label for="first_name">First Name</label>
+            <input id="first_name" name="first_name" type="text" placeholder="e.g. Israel" required>
+          </div>
+          <div>
+            <label for="last_name">Last Name</label>
+            <input id="last_name" name="last_name" type="text" placeholder="e.g. Malachy" required>
+          </div>
+        </div>
+
+        <div>
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" placeholder="Choose a unique username" required>
+        </div>
+
+        <div>
+          <label for="email">Email Address</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" required>
+        </div>
+
+        <div>
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" placeholder="Create a secure password" minlength="6" required>
+        </div>
+
+        <button class="btn" type="submit">Register</button>
+
+        <div class="footer">
+          Already have an account? <a href="{% url 'login' %}">Sign in</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("registerForm");
+    const errorBox = document.getElementById("errorBox");
+
+    function showError(msg){
+      errorBox.textContent = msg;
+      errorBox.style.display = "block";
+    }
+    function hideError(){
+      errorBox.style.display = "none";
+    }
+
+    form.addEventListener("submit", (e) => {
+      hideError();
+
+      const first = document.getElementById("first_name").value.trim();
+      const last = document.getElementById("last_name").value.trim();
+      const user = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const pass = document.getElementById("password").value;
+
+      if (!first || !last || !user || !email || !pass) {
+        e.preventDefault();
+        return showError("Please fill in all fields before registering.");
+      }
+
+      if (pass.length < 6){
+        e.preventDefault();
+        return showError("Password must be at least 6 characters.");
+      }
+    });
+  </script>
+</body>
+</html>

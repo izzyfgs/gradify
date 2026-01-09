@@ -1,0 +1,41 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Setup Subjects</title>
+  <style>
+    body{font-family:Segoe UI,Arial; background:#f6f7fb; margin:0; padding:40px;}
+    .card{max-width:820px; margin:auto; background:#fff; border-radius:18px; padding:22px; box-shadow:0 12px 28px rgba(0,0,0,.10);}
+    .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px;}
+    label{background:#f7f7fb; border:1px solid #eee; padding:14px; border-radius:14px; display:flex; gap:10px; align-items:center; cursor:pointer;}
+    .actions{display:flex; justify-content:flex-end; margin-top:16px;}
+    button{border:none; background:#111; color:#fff; padding:12px 14px; border-radius:12px; font-weight:900; cursor:pointer;}
+    .error{margin-top:12px; color:#b91c1c; font-weight:800;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Choose Your Subjects</h1>
+    <p>Pick the subjects you offer. Your dashboard will show them immediately.</p>
+
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="grid">
+        {% for s in all_subjects %}
+          <label>
+            <input type="checkbox" name="subjects" value="{{ s }}">
+            <strong>{{ s }}</strong>
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="actions">
+        <button type="submit">Save Subjects</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
