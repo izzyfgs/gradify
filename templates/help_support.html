@@ -2,177 +2,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gradify | Support Hub</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradify | Help & Support</title>
 
   <style>
-    :root {
+    :root{
       --grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-      --bg: #f0f2f5;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --wa-color: #25D366;
-      --mail-color: #ea4335;
-      --call-color: #3b82f6;
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --wa:#25D366;
+      --mail:#ea4335;
+      --call:#3b82f6;
+      --ai:#6d28d9;
     }
-
-    * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-
-    body {
-      margin: 0;
-      font-family: "Inter", "Segoe UI", sans-serif;
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: "Inter","Segoe UI",system-ui,sans-serif;
       background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .support-card {
-      width: 100%;
-      max-width: 500px;
-      background: var(--card);
-      border-radius: 30px;
-      overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(109, 40, 217, 0.15);
-    }
-
-    /* Vibrant Header */
-    .header {
-      background: var(--grad);
-      padding: 40px 20px;
-      text-align: center;
-      color: white;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 32px;
-      font-weight: 900;
-      letter-spacing: -1px;
-    }
-
-    .header p {
-      margin: 10px 0 0;
-      opacity: 0.9;
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    /* Content Area */
-    .content {
-      padding: 30px;
-    }
-
-    .contact-list {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .item {
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      padding: 16px;
-      border-radius: 20px;
-      border: 2px solid #f1f5f9;
-      background: #fff;
       color: var(--text);
-      font-weight: 800;
+      padding: 18px;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-
-    .item:hover {
-      transform: scale(1.02);
-      border-color: #ddd6fe;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    .wrap{
+      width:100%;
+      max-width: 520px;
     }
-
-    /* Colorful Icons */
-    .icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      margin-right: 15px;
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow:hidden;
+      box-shadow: 0 20px 50px rgba(15,23,42,0.06);
     }
-
-    .wa-icon { background: #e8faf0; color: var(--wa-color); }
-    .mail-icon { background: #fef2f2; color: var(--mail-color); }
-    .call-icon { background: #eff6ff; color: var(--call-color); }
-
-    .label-group { display: flex; flex-direction: column; flex-grow: 1; }
-    .label-group small { color: var(--muted); font-weight: 600; font-size: 12px; }
-
-    .badge {
-      background: var(--wa-color);
-      color: white;
-      font-size: 10px;
-      padding: 4px 8px;
-      border-radius: 8px;
-      text-transform: uppercase;
+    .header{
+      background: var(--grad);
+      padding: 26px 18px;
+      color:#fff;
+      text-align:center;
     }
-
-    .back-btn {
-      display: block;
-      text-align: center;
-      margin-top: 25px;
+    .header h1{
+      margin:0;
+      font-size: 24px;
+      font-weight: 950;
+      letter-spacing: -0.6px;
+    }
+    .header p{
+      margin: 8px 0 0;
+      opacity:0.95;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .content{
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+    }
+    .item{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      text-decoration:none;
+      color: var(--text);
+      background:#fff;
+      font-weight: 850;
+    }
+    .icon{
+      width:44px;height:44px;
+      border-radius:14px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:20px;
+      flex:0 0 44px;
+    }
+    .meta{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
+    }
+    .meta small{
       color: var(--muted);
-      text-decoration: none;
-      font-weight: 800;
-      font-size: 14px;
+      font-weight: 650;
+      font-size: 12px;
     }
+    .wa .icon{ background:#e9fbf1; color: var(--wa); }
+    .mail .icon{ background:#fef2f2; color: var(--mail); }
+    .call .icon{ background:#eff6ff; color: var(--call); }
+    .ai .icon{ background:#f5f3ff; color: var(--ai); }
 
-    .back-btn:hover { color: var(--primary); }
+    .footer{
+      padding: 0 18px 18px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      flex:1;
+      min-width:160px;
+      text-align:center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background:#fff;
+      font-weight: 900;
+      text-decoration:none;
+      color: var(--text);
+    }
+    .btn:hover{ border-color:#c7b7ff; background:#fbfaff; }
   </style>
 </head>
 
 <body>
-  <div class="support-card">
-    <div class="header">
-      <h1>Support Hub</h1>
-      <p>How can we help you today?</p>
-    </div>
-
-    <div class="content">
-      <div class="contact-list">
-        
-        <a href="https://wa.me/+22955278109" class="item" target="_blank">
-          <div class="icon wa-icon">💬</div>
-          <div class="label-group">
-            <span>WhatsApp</span>
-            <small>Chat with me instantly</small>
-          </div>
-          <div class="badge">Online</div>
-        </a>
-
-        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=israelmalachy21@gmail.com" class="item" target="_blank">
-  <div class="icon mail-icon">📩</div>
-  <div class="label-group">
-    <span>Email (Gmail Web)</span>
-    <small>Opens in your browser</small>
-  </div>
-</a>
-
-        <a href="tel:+2290155278109" class="item">
-          <div class="icon call-icon">📞</div>
-          <div class="label-group">
-            <span>Direct Call</span>
-            <small>Available 9am - 6pm</small>
-          </div>
-        </a>
-
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <h1>Help & Support</h1>
+        <p>Choose the fastest way to reach support.</p>
       </div>
 
-      <a href="{% url 'dashboard' %}" class="back-btn">
-        ⬅ Back to Dashboard
-      </a>
+      <div class="content">
+        <a class="item wa" href="https://wa.me/22955278109" target="_blank" rel="noopener">
+          <div class="icon">💬</div>
+          <div class="meta">
+            <div>WhatsApp</div>
+            <small>Chat instantly</small>
+          </div>
+        </a>
+
+        <a class="item mail" href="mailto:israelmalachy21@gmail.com?subject=Gradify%20Support&body=Hi%20Israel,%0A%0AI%20need%20help%20with%20Gradify.%0A%0AUsername:%20%0AIssue:%20%0A%0AThanks.">
+          <div class="icon">📩</div>
+          <div class="meta">
+            <div>Email</div>
+            <small>Opens your mail app</small>
+          </div>
+        </a>
+
+        <a class="item call" href="tel:+2290155278109">
+          <div class="icon">📞</div>
+          <div class="meta">
+            <div>Phone Call</div>
+            <small>Call directly</small>
+          </div>
+        </a>
+
+        <a class="item ai" href="{% url 'ai_chat' %}">
+          <div class="icon">🤖</div>
+          <div class="meta">
+            <div>Chat with AI</div>
+            <small>Get instant help inside Gradify</small>
+          </div>
+        </a>
+      </div>
+
+      <div class="footer">
+        <a class="btn" href="{% url 'dashboard' %}">⬅ Back to Dashboard</a>
+      </div>
     </div>
   </div>
 </body>

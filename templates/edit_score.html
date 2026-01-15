@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gradify | Edit Score</title>
+
+  <style>
+    :root{ --purple:#6d28d9; --border:#e2e8f0; --muted:#64748b; --ink:#0f172a; }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; padding:18px;
+      font-family:"Segoe UI", system-ui, Arial, sans-serif;
+      background:#fff; color:var(--ink);
+    }
+    .wrap{ max-width:650px; margin:0 auto; }
+    h1{ margin:0 0 10px; font-size:28px; font-weight:950; }
+    .sub{ color:var(--muted); font-weight:800; margin:0 0 18px; }
+
+    form{
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px;
+      background:#fff;
+    }
+    button{
+      border:none;
+      padding:12px 14px;
+      border-radius:14px;
+      background:var(--purple);
+      color:#fff;
+      font-weight:950;
+      cursor:pointer;
+      width:100%;
+      margin-top:12px;
+    }
+    a{
+      display:inline-block;
+      margin-top:12px;
+      text-decoration:none;
+      color:var(--purple);
+      font-weight:900;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Edit Score</h1>
+    <p class="sub">Update your saved score and keep your history clean.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Save Changes</button>
+    </form>
+
+    <a href="{% url 'view_scores' %}">⬅ Back to View Scores</a>
+  </div>
+</body>
+</html>

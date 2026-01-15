@@ -16,8 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic.base import RedirectView   # ← Important import!
+from core import views # Replace 'my_app_name' with your actual app name
 
 urlpatterns = [
+    # Redirect root (/) → register page (using the named URL)
+    path('', RedirectView.as_view(pattern_name='register', permanent=False)),
+
     path('admin/', admin.site.urls),
-    path('', include('core.urls')),
+
+    # Include your core app URLs (this makes /register/, /login/, etc. work)
+    path('', include('core.urls')),  # ← '' means no prefix — all core paths at root level
 ]

@@ -1,0 +1,277 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradify | AI Support</title>
+
+  <style>
+    :root{
+      --grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --me:#6d28d9;
+      --bot:#0f172a;
+      --botbg:#ffffff;
+      --mebg:#f5f3ff;
+      --shadow: 0 18px 50px rgba(15,23,42,0.08);
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: "Inter","Segoe UI",system-ui,sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 12px;
+    }
+    .shell{
+      width:100%;
+      max-width: 720px;
+      height: calc(100vh - 24px);
+      display:flex;
+      flex-direction:column;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+    .top{
+      background: var(--grad);
+      color:#fff;
+      padding: 14px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .top .title{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      font-weight: 950;
+      letter-spacing:-0.3px;
+    }
+    .badge{
+      width:34px;height:34px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background: rgba(255,255,255,0.18);
+      font-weight: 950;
+    }
+    .top .actions{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+    }
+    .top a, .top button{
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.12);
+      color:#fff;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight: 900;
+      cursor:pointer;
+      text-decoration:none;
+      font-size: 12px;
+    }
+    .top a:hover, .top button:hover{ background: rgba(255,255,255,0.18); }
+
+    .chat{
+      flex:1;
+      overflow:auto;
+      padding: 14px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      background: linear-gradient(180deg, #ffffff, #fbfbff);
+    }
+
+    .msg{
+      max-width: 90%;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      line-height: 1.45;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .msg.user{
+      margin-left:auto;
+      background: var(--mebg);
+      border-color: #ddd6fe;
+      color: var(--me);
+      font-weight: 800;
+    }
+    .msg.bot{
+      margin-right:auto;
+      background: var(--botbg);
+      color: var(--bot);
+      font-weight: 750;
+    }
+    .meta{
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-weight: 700;
+    }
+
+    .composer{
+      border-top: 1px solid var(--border);
+      padding: 10px;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      background:#fff;
+    }
+    textarea{
+      flex:1;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 12px;
+      font-size: 14px;
+      resize:none;
+      min-height: 44px;
+      max-height: 120px;
+      outline:none;
+      font-family: inherit;
+    }
+    textarea:focus{
+      border-color: #c7b7ff;
+      box-shadow: 0 0 0 4px rgba(109,40,217,0.10);
+    }
+    .send{
+      border:none;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-weight: 950;
+      cursor:pointer;
+      background: var(--grad);
+      color:#fff;
+      min-width: 90px;
+    }
+    .send:active{ transform: scale(0.98); }
+
+    .hint{
+      padding: 8px 14px 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 520px){
+      .shell{ height: calc(100vh - 18px); border-radius: 18px; }
+      .msg{ max-width: 95%; font-size: 13px; }
+      .top a, .top button{ padding: 8px 9px; }
+      .send{ min-width: 78px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="top">
+      <div class="title">
+        <div class="badge">G</div>
+        <div>Gradify AI Support</div>
+      </div>
+
+      <div class="actions">
+        <a href="{% url 'help_support' %}">Back</a>
+        <form action="{% url 'ai_chat_clear' %}" method="post" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" title="Clear chat">Clear</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="hint">Tip: Tell me what page you’re on + what you clicked + what happened.</div>
+
+    <div class="chat" id="chat">
+      {% if messages %}
+        {% for m in messages %}
+          <div class="msg {% if m.role == 'user' %}user{% else %}bot{% endif %}">
+            {{ m.content }}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="msg bot">
+          Hi 👋 I’m Gradify Support AI.
+          Tell me what you’re trying to do, and what went wrong.
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="composer">
+      <textarea id="msg" placeholder="Type your message..."></textarea>
+      <button class="send" id="sendBtn" type="button">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const msg = document.getElementById("msg");
+    const sendBtn = document.getElementById("sendBtn");
+
+    function scrollBottom(){
+      chat.scrollTop = chat.scrollHeight;
+    }
+    scrollBottom();
+
+    function addBubble(text, who){
+      const div = document.createElement("div");
+      div.className = "msg " + (who === "user" ? "user" : "bot");
+      div.textContent = text;
+      chat.appendChild(div);
+      scrollBottom();
+    }
+
+    async function sendMessage(){
+      const text = msg.value.trim();
+      if(!text) return;
+
+      addBubble(text, "user");
+      msg.value = "";
+      msg.focus();
+
+      try{
+        const res = await fetch("{% url 'ai_chat_send' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+          body: JSON.stringify({message: text})
+        });
+
+        const data = await res.json();
+        if(!data.ok){
+          addBubble("Something went wrong. Please try again.", "bot");
+          return;
+        }
+
+        addBubble(data.reply, "bot");
+      }catch(e){
+        addBubble("Network error. Please try again.", "bot");
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+
+    msg.addEventListener("keydown", (e) => {
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>

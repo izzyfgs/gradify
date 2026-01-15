@@ -15,10 +15,10 @@
       --card-border: #f1f5f9;
       --danger: #ef4444;
       --hover: #fff5f5;
+      --hover-soft: #f8fafc;
     }
 
     *{ box-sizing:border-box; }
-
     html, body{
       margin:0; padding:0; height:100%;
       font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
@@ -26,9 +26,52 @@
       overflow-x:hidden;
     }
 
-    .app{ display:flex; height:100vh; width:100vw; }
+    /* ✅ reserve space for fixed mobile topbar */
+    body{ padding-top: 0; }
 
-    /* ===== SIDEBAR ===== */
+    .app{ display:flex; min-height:100vh; width:100%; }
+
+    /* ===== MOBILE TOP BAR (FIXED) ===== */
+    .topbar{
+      display:none;
+      position: fixed;
+      top:0; left:0; right:0;
+      z-index:1200;
+      background:#fff;
+      border-bottom:1px solid var(--border);
+      padding: 12px 14px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .topbar .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:950;
+      letter-spacing:-0.4px;
+      font-size:16px;
+    }
+    .topbar .logo-icon{
+      width:38px; height:38px;
+      border-radius:12px;
+      background: var(--purple-grad);
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:950;
+      user-select:none;
+      font-size:18px;
+      box-shadow: 0 10px 25px rgba(109,40,217,0.20);
+    }
+    .hamburger{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    /* ===== SIDEBAR (FIXED) ===== */
     .sidebar{
       width:320px;
       height:100vh;
@@ -40,36 +83,55 @@
       position:fixed;
       left:0; top:0;
       z-index:1000;
-      overflow:visible;
+      overflow-y:auto; /* ✅ allow scroll inside sidebar */
+      overflow-x:hidden;
+      transition: transform .25s ease;
     }
 
     .logo-container{
       display:flex; align-items:center; gap:12px;
-      margin-bottom:35px;
+      margin-bottom:26px;
     }
-    .logo-icon{
-      width:42px; height:42px;
+    .logo-container .logo-icon{
+      width:48px; height:48px; /* ✅ bigger */
       background: var(--purple-grad);
-      border-radius:12px;
+      border-radius:16px;
       display:flex; align-items:center; justify-content:center;
-      color:#fff; font-weight:900; font-size:20px;
+      color:#fff; font-weight:950; font-size:22px;
       user-select:none;
+      box-shadow: 0 14px 30px rgba(109,40,217,0.22);
     }
-    .logo-text{ font-size:22px; font-weight:900; letter-spacing:-0.3px; }
+    .logo-text{
+      font-size:26px; /* ✅ more pronounced */
+      font-weight:950;
+      letter-spacing:-0.6px;
+      line-height:1;
+    }
 
+    /* overlay for mobile drawer */
+    .overlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,0.35);
+      z-index: 999;
+    }
+    .overlay.show{ display:block; }
+
+    /* ✅ More visible profile card */
     .profile-card{
       display:flex; align-items:center;
-      background:#fff;
+      background:#fbfbff;
       padding:16px;
       border-radius:20px;
-      border:1px solid var(--card-border);
+      border:1px solid #e9d5ff;
       position:relative;
-      margin-bottom:30px;
-      box-shadow:0 10px 25px rgba(0,0,0,0.04);
+      margin-bottom:22px;
+      box-shadow:0 12px 28px rgba(109,40,217,0.08);
     }
 
     .avatar-upload{
-      width:50px; height:50px; border-radius:50%;
+      width:52px; height:52px; border-radius:50%;
       background:#f1f5f9;
       display:flex; align-items:center; justify-content:center;
       cursor:pointer;
@@ -90,7 +152,7 @@
       min-width:0;
     }
     .user-info .username{
-      font-weight:900;
+      font-weight:950;
       font-size:15px;
       display:block;
       white-space:nowrap;
@@ -100,23 +162,24 @@
     .user-info .avg-text{
       font-size:12px;
       color:var(--muted);
-      font-weight:800;
-      margin-top:2px;
+      font-weight:850;
+      margin-top:3px;
     }
 
     .three-dots{
       cursor:pointer;
       font-size:20px;
-      padding:6px 8px;
-      border-radius:10px;
+      padding:8px 10px;
+      border-radius:12px;
       user-select:none;
       line-height:1;
+      flex-shrink:0;
     }
     .three-dots:hover{ background:#f1f5f9; }
 
     .dropdown-menu{
       position:absolute;
-      right:12px; top:62px;
+      right:12px; top:68px;
       background:#fff;
       border:1px solid var(--border);
       border-radius:12px;
@@ -133,21 +196,20 @@
       text-decoration:none;
       color:#111;
       font-size:13px;
-      font-weight:800;
+      font-weight:900;
       cursor:pointer;
     }
     .dropdown-menu a:hover{ background:#f8fafc; }
     .dropdown-menu a.danger{ color: var(--danger); }
 
-    /* Menu section */
-    .menu-section{ margin-top:10px; }
+    .menu-section{ margin-top:8px; }
 
     .section-trigger{
       display:flex; justify-content:space-between; align-items:center;
       padding:12px 8px;
-      font-weight:900;
+      font-weight:950;
       font-size:13px;
-      color:#111;           /* ✅ visible (not gray) */
+      color:#111;
       cursor:pointer;
       user-select:none;
     }
@@ -165,18 +227,29 @@
       border-radius:12px;
       text-decoration:none;
       color:#111;
-      font-weight:900;
+      font-weight:950;
       font-size:14px;
-      transition: background 0.2s ease;
+      transition: all 0.2s ease;
+      border-left: 4px solid transparent;
     }
-    .nav-item:hover{ background: var(--hover); }
+    .nav-item:hover{
+      background: var(--hover-soft);
+      border-left: 4px solid var(--purple);
+      color: var(--purple);
+      padding-left: 16px;
+    }
 
     .nav-icon{ width:18px; height:18px; fill:#000; }
+    .nav-item:hover .nav-icon{ fill: var(--purple); }
 
-    /* Logout red */
     .nav-item.logout{ color: var(--danger); }
     .nav-item.logout .nav-icon{ fill: var(--danger); }
-    .nav-item.logout:hover{ background: rgba(239,68,68,0.10); }
+    .nav-item.logout:hover{
+      background: rgba(239,68,68,0.10);
+      border-left: 4px solid var(--danger);
+      color: var(--danger);
+    }
+    .nav-item.logout:hover .nav-icon{ fill: var(--danger); }
 
     /* ===== MAIN BODY ===== */
     .main-body{
@@ -195,7 +268,6 @@
       letter-spacing:-1px;
       line-height:1.1;
     }
-    /* ✅ gradient username */
     .welcome-text .uname{
       background: var(--purple-grad);
       -webkit-background-clip:text;
@@ -226,11 +298,16 @@
       background:#fff;
       padding:35px;
       border-radius:28px;
-      border:1px solid var(--card-border);
-      box-shadow:0 10px 40px rgba(0,0,0,0.03);
+      border:2px solid var(--card-border);
+      box-shadow:0 4px 20px rgba(0,0,0,0.02);
+      transition: all 0.25s ease;
+    }
+    .stat-card:hover{
+      transform: translateY(-5px);
+      border:2px solid var(--purple);
+      box-shadow: 0 12px 24px rgba(109, 40, 217, 0.10);
     }
 
-    /* ✅ label black, big number purple (not gradient) */
     .stat-label{
       color:#000;
       font-weight:950;
@@ -269,11 +346,17 @@
       background:#fcfcfc;
       padding:22px;
       border-radius:18px;
-      border:1px solid var(--card-border);
+      border:2px solid var(--card-border);
       font-weight:950;
       display:flex;
       justify-content:space-between;
       align-items:center;
+      transition: all .25s ease;
+    }
+    .subject-card:hover{
+      border:2px solid var(--purple);
+      background:#fdfcff;
+      transform: translateY(-3px);
     }
     .subject-card .pct{ color: var(--purple); }
 
@@ -286,268 +369,285 @@
       color:#334155;
       font-weight:850;
     }
-/* ===== BORDER GRADIENT HOVER EFFECT ===== */
-    .stat-card, .subject-card {
-      background: #fff;
-      padding: 35px;
-      border-radius: 28px;
-      /* Normal thin gray border */
-      border: 2px solid var(--card-border); 
-      box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-      transition: all 0.3s ease-in-out;
-      cursor: pointer;
-      position: relative;
+
+    /* ===== MOBILE RESPONSIVE ===== */
+    @media (max-width: 920px){
+      .topbar{ display:flex; }
+      body{ padding-top: 62px; } /* ✅ space for fixed topbar */
+
+      .main-body{
+        margin-left:0;
+        padding: 22px 16px 28px;
+      }
+      .sidebar{
+        transform: translateX(-110%);
+        width: 86%;
+        max-width: 340px;
+        box-shadow: 0 18px 60px rgba(0,0,0,0.25);
+      }
+      .sidebar.open{ transform: translateX(0); }
+
+      .logo-container{ display:none; }
+      .welcome-text{ font-size: 30px; }
+      .stats-grid{ gap: 14px; margin-top: 18px; }
+      .stat-card{ padding: 18px; border-radius: 18px; }
+      .stat-value{ font-size: 46px; }
+      .subject-title{ font-size: 18px; }
+      .subject-card{ padding: 16px; border-radius: 16px; }
+      body{ padding-bottom: 8px; }
     }
 
-    /* THE CHANGE: Only the border turns purple on hover */
-    .stat-card:hover, .subject-card:hover {
-      transform: translateY(-5px);
-      /* This creates the gradient border effect */
-      border-color: transparent;
-      border-image: var(--purple-grad) 1;
-      border-radius: 28px; /* Note: border-image can sometimes clip corners */
-      
-      /* Alternative more reliable method for rounded corners: */
-      border: 2px solid #8b5cf6; 
-      box-shadow: 0 12px 24px rgba(109, 40, 217, 0.1);
+    @media (max-width: 420px){
+      .stat-value{ font-size: 42px; }
+      .stat-label{ font-size: 14px; }
+      .motivation-line{ font-size: 14px; }
     }
-
-    /* We keep the text colors as they are, or make them slightly bolder */
-    .stat-card:hover .stat-label {
-      color: var(--purple);
-    }
-    
-    /* Subject Card specific hover */
-    .subject-card:hover {
-        border: 2px solid var(--purple);
-        background: #fdfcff; /* Very slight purple tint to the white */
-    }
-
-    /* Nav Item Sidebar Hover - Border left effect */
-    .nav-item {
-      border-left: 4px solid transparent;
-      transition: all 0.2s;
-    }
-    .nav-item:hover {
-      background: var(--hover-soft);
-      border-left: 4px solid var(--purple);
-      color: var(--purple) !important;
-      padding-left: 16px;
-    }
-  
   </style>
 </head>
 
 <body>
-<div class="app">
-  <aside class="sidebar">
-    <div class="logo-container">
+
+  <!-- MOBILE TOP BAR -->
+  <div class="topbar">
+    <div class="brand">
       <div class="logo-icon">G</div>
-      <div class="logo-text">Gradify</div>
+      <div>Gradify</div>
     </div>
 
-    <!-- Profile mini card -->
-    <div class="profile-card">
-      <div class="avatar-upload" id="avatarBtn" title="Change profile picture">
-        <span id="plusIcon" style="font-size:20px; color:#cbd5e1">+</span>
-        <img id="previewImg" src="" alt="Avatar">
-      </div>
-      <input type="file" id="fileInput" hidden accept="image/*" />
-
-      <div class="user-info">
-        <span class="username">{{ request.user.username|default:"Student" }}</span>
-        <span class="avg-text">Average: {{ avg_percent|default:0 }}%</span>
-      </div>
-
-      <div class="three-dots" id="dotsBtn">⋮</div>
-      <div class="dropdown-menu" id="profileDropdown">
-        <a href="javascript:void(0)" id="editBtn">Edit Avatar</a>
-        <a href="javascript:void(0)" id="deleteBtn" class="danger">Delete Avatar</a>
-      </div>
-    </div>
-
-    <!-- MAIN MENU (only Add New + View Scores) -->
-    <div class="menu-section">
-      <div class="section-trigger" data-target="mainMenu">
-        Main Menu <span class="arrow" id="arrowMain">▾</span>
-      </div>
-      <div id="mainMenu" class="section-content open">
-        <a href="#" class="nav-item" id="addNewBtn">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-          Add New
-        </a>
-
-        <a href="{% url 'view_scores' %}" class="nav-item">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
-          View Scores
-        </a>
-      </div>
-    </div>
-
-    <!-- PERFORMANCE (Help & Support + Logout only) -->
-    <div class="menu-section" style="margin-top:15px;">
-      <div class="section-trigger" data-target="perfMenu">
-        Performance <span class="arrow" id="arrowPerf">▸</span>
-      </div>
-      <div id="perfMenu" class="section-content">
-        <a href="{% url 'help_support' %}" class="nav-item">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-          Help & Support
-        </a>
-
-        <a href="{% url 'logout' %}" class="nav-item logout">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
-          Logout
-        </a>
-      </div>
-    </div>
-  </aside>
-
-  <main class="main-body">
-    <h1 class="welcome-text">
-      Welcome back, <span class="uname">{{ request.user.username|default:"Student" }}</span>.
-    </h1>
-
-    <span class="motivation-line" id="motivationLine">
-      {% if subjects %}
-        Your subjects are set — consistency is the cheat code. Let’s keep going.
-      {% else %}
-        You haven’t chosen your subjects yet. Click <strong>Add New</strong> to set them up.
-      {% endif %}
-    </span>
-
-    <div class="stats-grid">
-      <!-- ✅ Total Sessions: count sessions not questions -->
-      <div class="stat-card">
-        <span class="stat-label">Total Sessions</span>
-        <span class="stat-value" id="sessionsVal">{{ total_sessions|default:0 }}</span>
-        <div class="stat-sub">{{ total_sessions|default:0 }} sessions</div>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-label">Study Streak</span>
-        <span class="stat-value" id="streakVal">{{ streak_days|default:0 }}</span>
-        <div class="stat-sub">{{ streak_days|default:0 }} days</div>
-      </div>
-
-   <div class="stat-card">
-    <span class="stat-label">Best Subject</span>
-    <span class="stat-value" id="bestVal" style="font-size:34px;">
-        {{ best_subject|default:"—" }}
-    </span>
-    <div class="stat-sub">Highest performance so far</div>
-</div>
-    </div>
-
-    {% if subjects %}
-      <div class="subject-section">
-        <h2 class="subject-title">Subject Performance</h2>
-        <div class="subject-grid">
-          {% for s in subjects %}
-  <div class="subject-card">
-    <span>{{ s.name }}</span>
-    <span class="pct">{{ s.percent }}%</span>
+    <button class="hamburger" id="menuBtn" type="button">☰ Menu</button>
   </div>
-{% endfor %}
+
+  <!-- Overlay for drawer -->
+  <div class="overlay" id="overlay"></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="logo-container">
+        <div class="logo-icon">G</div>
+        <div class="logo-text">Gradify</div>
+      </div>
+
+      <div class="profile-card">
+        <div class="avatar-upload" id="avatarBtn" title="Change profile picture">
+          <span id="plusIcon" style="font-size:20px; color:#cbd5e1">+</span>
+          <img id="previewImg" src="" alt="Avatar">
+        </div>
+        <input type="file" id="fileInput" hidden accept="image/*" />
+
+        <div class="user-info">
+          <span class="username">{{ request.user.username|default:"Student" }}</span>
+          <span class="avg-text">Average: {{ avg_percent|default:0 }}%</span>
+        </div>
+
+        <div class="three-dots" id="dotsBtn">⋮</div>
+        <div class="dropdown-menu" id="profileDropdown">
+          <a href="javascript:void(0)" id="editBtn">Edit Avatar</a>
+          <a href="javascript:void(0)" id="deleteBtn" class="danger">Delete Avatar</a>
         </div>
       </div>
-    {% endif %}
 
-    {% if not subjects %}
-      <div class="empty-subjects">
-        No subjects yet. Click <strong>Add New</strong> to choose your subjects.
+      <div class="menu-section">
+        <div class="section-trigger" data-target="mainMenu">
+          Main Menu <span class="arrow" id="arrowMain">▾</span>
+        </div>
+
+        <div id="mainMenu" class="section-content open">
+          <a href="#" class="nav-item" id="addNewBtn">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Add New
+          </a>
+
+          <a href="{% url 'view_scores' %}" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            View Scores
+          </a>
+        </div>
       </div>
-    {% endif %}
-  </main>
-</div>
 
-<script>
-  // ===== Sidebar dropdown toggles =====
-  document.querySelectorAll(".section-trigger").forEach(t => {
-    t.addEventListener("click", () => {
-      const targetId = t.getAttribute("data-target");
-      const panel = document.getElementById(targetId);
-      panel.classList.toggle("open");
+      <div class="menu-section" style="margin-top:15px;">
+        <div class="section-trigger" data-target="perfMenu">
+          Performance <span class="arrow" id="arrowPerf">▸</span>
+        </div>
 
-      if (targetId === "mainMenu") {
-        document.getElementById("arrowMain").textContent = panel.classList.contains("open") ? "▾" : "▸";
-      }
-      if (targetId === "perfMenu") {
-        document.getElementById("arrowPerf").textContent = panel.classList.contains("open") ? "▾" : "▸";
-      }
+        <div id="perfMenu" class="section-content">
+          <a href="{% url 'help_support' %}" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            Help & Support
+          </a>
+
+          <a href="{% url 'logout' %}" class="nav-item logout">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
+            Logout
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-body">
+      <h1 class="welcome-text">
+        Welcome back, <span class="uname">{{ request.user.username|default:"Student" }}</span>.
+      </h1>
+
+      <span class="motivation-line" id="motivationLine">
+        {% if subjects %}
+          Your subjects are set — consistency is the cheat code. Let’s keep going.
+        {% else %}
+          You haven’t chosen your subjects yet. Click <strong>Add New</strong> to set them up.
+        {% endif %}
+      </span>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Sessions</span>
+          <span class="stat-value" id="sessionsVal">{{ total_sessions|default:0 }}</span>
+          <div class="stat-sub">{{ total_sessions|default:0 }} sessions</div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Study Streak</span>
+          <span class="stat-value" id="streakVal">{{ streak_days|default:0 }}</span>
+          <div class="stat-sub">{{ streak_days|default:0 }} days</div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Best Subject</span>
+          <span class="stat-value" id="bestVal" style="font-size:34px;">
+            {{ best_subject|default:"—" }}
+          </span>
+          <div class="stat-sub">Highest performance so far</div>
+        </div>
+      </div>
+
+      {% if subjects %}
+        <div class="subject-section">
+          <h2 class="subject-title">Subject Performance</h2>
+          <div class="subject-grid">
+            {% for s in subjects %}
+              <div class="subject-card">
+                <span>{{ s.name }}</span>
+                <span class="pct">{{ s.percent }}%</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-subjects">
+          No subjects yet. Click <strong>Add New</strong> to choose your subjects.
+        </div>
+      {% endif %}
+    </main>
+  </div>
+
+  <script>
+    // ===== Mobile drawer open/close =====
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const menuBtn = document.getElementById("menuBtn");
+
+    function openDrawer(){
+      sidebar.classList.add("open");
+      overlay.classList.add("show");
+    }
+    function closeDrawer(){
+      sidebar.classList.remove("open");
+      overlay.classList.remove("show");
+    }
+
+    if(menuBtn){
+      menuBtn.addEventListener("click", () => {
+        if(sidebar.classList.contains("open")) closeDrawer();
+        else openDrawer();
+      });
+    }
+    overlay.addEventListener("click", closeDrawer);
+
+    // Close drawer when clicking a sidebar link (mobile)
+    document.querySelectorAll(".sidebar a.nav-item").forEach(a => {
+      a.addEventListener("click", () => closeDrawer());
     });
-  });
 
-  // ===== Profile dropdown =====
-  const dotsBtn = document.getElementById("dotsBtn");
-  const dropdown = document.getElementById("profileDropdown");
-  dotsBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    dropdown.classList.toggle("show");
-  });
-  document.addEventListener("click", () => dropdown.classList.remove("show"));
+    // ===== Sidebar section toggles =====
+    document.querySelectorAll(".section-trigger").forEach(t => {
+      t.addEventListener("click", () => {
+        const targetId = t.getAttribute("data-target");
+        const panel = document.getElementById(targetId);
+        panel.classList.toggle("open");
 
-  // ===== Avatar per-user (NOT shared) =====
-  const avatarBtn = document.getElementById("avatarBtn");
-  const fileInput = document.getElementById("fileInput");
-  const previewImg = document.getElementById("previewImg");
-  const plusIcon = document.getElementById("plusIcon");
-  const editBtn = document.getElementById("editBtn");
-  const deleteBtn = document.getElementById("deleteBtn");
+        if (targetId === "mainMenu") {
+          document.getElementById("arrowMain").textContent = panel.classList.contains("open") ? "▾" : "▸";
+        }
+        if (targetId === "perfMenu") {
+          document.getElementById("arrowPerf").textContent = panel.classList.contains("open") ? "▾" : "▸";
+        }
+      });
+    });
 
-  // per-user storage key so new accounts don't share pics
-  const USERNAME = "{{ request.user.username|default:'student'|lower }}";
-  const AVATAR_KEY = "gradify_avatar_" + USERNAME;
+    // ===== Profile dropdown =====
+    const dotsBtn = document.getElementById("dotsBtn");
+    const dropdown = document.getElementById("profileDropdown");
 
-  function loadAvatar(){
-    const saved = localStorage.getItem(AVATAR_KEY);
-    if(saved){
-      previewImg.src = saved;
-      previewImg.style.display = "block";
-      plusIcon.style.display = "none";
-    }else{
-      previewImg.src = "";
-      previewImg.style.display = "none";
-      plusIcon.style.display = "block";
+    dotsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("show");
+    });
+    document.addEventListener("click", () => dropdown.classList.remove("show"));
+
+    // ===== Avatar per-user (NOT shared) =====
+    const avatarBtn = document.getElementById("avatarBtn");
+    const fileInput = document.getElementById("fileInput");
+    const previewImg = document.getElementById("previewImg");
+    const plusIcon = document.getElementById("plusIcon");
+    const editBtn = document.getElementById("editBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+
+    const USERNAME = "{{ request.user.username|default:'student'|lower }}";
+    const AVATAR_KEY = "gradify_avatar_" + USERNAME;
+
+    function loadAvatar(){
+      const saved = localStorage.getItem(AVATAR_KEY);
+      if(saved){
+        previewImg.src = saved;
+        previewImg.style.display = "block";
+        plusIcon.style.display = "none";
+      }else{
+        previewImg.src = "";
+        previewImg.style.display = "none";
+        plusIcon.style.display = "block";
+      }
     }
-  }
-  loadAvatar();
-
-  function openPicker(){ fileInput.click(); }
-
-  avatarBtn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openPicker(); });
-  editBtn.addEventListener("click", (e) => { e.preventDefault(); dropdown.classList.remove("show"); openPicker(); });
-
-  fileInput.addEventListener("change", function(){
-    const file = this.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      localStorage.setItem(AVATAR_KEY, ev.target.result);
-      loadAvatar();
-    };
-    reader.readAsDataURL(file);
-    fileInput.value = "";
-  });
-
-  deleteBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    localStorage.removeItem(AVATAR_KEY);
     loadAvatar();
-    dropdown.classList.remove("show");
-  });
 
-  // ===== Add New behavior (first time -> setup subjects) =====
-  // Server-side truth: if no subjects in DB, go to setup_subjects.
-  const hasSubjects = {{ subjects|length|default:0 }};
-  document.getElementById("addNewBtn").addEventListener("click", (e) => {
-    e.preventDefault();
-    if (!hasSubjects) {
-      window.location.href = "{% url 'setup_subjects' %}";
-    } else {
-      window.location.href = "{% url 'add_score' %}";
-    }
-  });
-</script>
+    function openPicker(){ fileInput.click(); }
+
+    avatarBtn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openPicker(); });
+    editBtn.addEventListener("click", (e) => { e.preventDefault(); dropdown.classList.remove("show"); openPicker(); });
+
+    fileInput.addEventListener("change", function(){
+      const file = this.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        localStorage.setItem(AVATAR_KEY, ev.target.result);
+        loadAvatar();
+      };
+      reader.readAsDataURL(file);
+      fileInput.value = "";
+    });
+
+    deleteBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      localStorage.removeItem(AVATAR_KEY);
+      loadAvatar();
+      dropdown.classList.remove("show");
+    });
+
+    // ===== Add New behavior (first time -> setup subjects) =====
+    const hasSubjects = {{ subjects|length|default:0 }};
+    document.getElementById("addNewBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!hasSubjects) window.location.href = "{% url 'setup_subjects' %}";
+      else window.location.href = "{% url 'add_score' %}";
+    });
+  </script>
 </body>
 </html>

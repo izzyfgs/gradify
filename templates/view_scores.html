@@ -2,159 +2,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gradify | Performance History</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gradify | View Scores</title>
 
   <style>
-    :root {
-      --purple: #6d28d9;
-      --purple-light: #f5f3ff;
-      --border: #e2e8f0;
-      --muted: #64748b;
-      --soft: #f8fafc;
-      --ink: #0f172a;
+    :root{
+      --purple:#6d28d9;
+      --purpleLight:#f5f3ff;
+      --border:#e2e8f0;
+      --muted:#64748b;
+      --ink:#0f172a;
+      --danger:#ef4444;
+      --card:#ffffff;
+      --soft:#f8fafc;
+    }
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      background:#ffffff;
+      color:var(--ink);
+      padding:18px;
     }
 
-    * { box-sizing: border-box; transition: all 0.2s ease; }
-
-    body {
-      margin: 0;
-      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-      background: #ffffff;
-      color: var(--ink);
-      padding: 50px;
-    }
-
-    .container {
+    .container{
       max-width: 1000px;
       margin: 0 auto;
     }
 
-    .top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 40px;
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:18px;
     }
 
-    h1 { 
-      margin: 0; 
-      font-size: 36px; 
-      font-weight: 900; 
-      letter-spacing: -1.2px; 
+    h1{
+      margin:0;
+      font-size: clamp(22px, 3vw, 34px);
+      font-weight: 950;
+      letter-spacing:-0.8px;
     }
 
-    a.btn {
-      text-decoration: none;
-      background: #fff;
-      border: 1.5px solid var(--border);
-      padding: 12px 20px;
-      border-radius: 14px;
-      font-weight: 800;
-      color: var(--ink);
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .btn{
+      text-decoration:none;
+      background:#fff;
+      border:1.5px solid var(--border);
+      padding:10px 14px;
+      border-radius:14px;
+      font-weight:900;
+      color:var(--ink);
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
     }
-
-    a.btn:hover {
+    .btn:hover{
       border-color: var(--purple);
       color: var(--purple);
-      background: var(--purple-light);
+      background: var(--purpleLight);
     }
 
-    /* Professional Table Styling */
-    .card {
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 4px 25px rgba(0,0,0,0.03);
+    .subject-block{
+      margin-top: 18px;
+      border:1px solid var(--border);
+      border-radius: 18px;
+      overflow:hidden;
+      background: var(--card);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-    }
-
-    thead th {
+    .subject-head{
+      padding:14px 16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
       background: var(--soft);
-      text-align: left;
-      padding: 18px 24px;
-      font-size: 12px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
+      border-bottom:1px solid var(--border);
     }
-
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      cursor: default;
-    }
-
-    /* THE PRO HOVER EFFECT */
-    tbody tr:hover {
-      background-color: var(--purple-light);
-    }
-
-    tbody td {
-      padding: 20px 24px;
-      font-weight: 700;
+    .subject-title{
+      font-weight: 950;
       font-size: 15px;
+      letter-spacing: 0.2px;
     }
-
-    /* Year Tag Style */
-    .year-pill {
-      background: #f1f5f9;
-      padding: 4px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 800;
-    }
-
-    .subject-name {
+    .count{
       font-weight: 900;
-      color: var(--ink);
-      font-size: 16px;
-    }
-
-    .pct { 
-      color: var(--purple); 
-      font-weight: 950; 
-      font-size: 18px;
-    }
-
-    .muted-date { 
-      color: var(--muted); 
-      font-weight: 600; 
-      font-size: 13px;
-    }
-
-    .empty {
-      padding: 60px;
-      text-align: center;
-      font-weight: 800;
+      font-size: 12px;
       color: var(--muted);
     }
 
-    /* Progress Bar inside table */
-    .progress-bg {
-      width: 100px;
-      height: 6px;
-      background: #eef2ff;
-      border-radius: 10px;
-      margin-top: 6px;
-      overflow: hidden;
+    .scores{
+      padding: 14px 16px 16px;
+      display:grid;
+      gap:12px;
     }
-    .progress-fill {
-      height: 100%;
+
+    .score-card{
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 12px;
+      background:#fff;
+      position:relative;
+    }
+
+    .row1{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .meta{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+
+    .meta .year{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight:900;
+      font-size:13px;
+      color:var(--ink);
+    }
+    .pill{
+      background:#f1f5f9;
+      border:1px solid var(--border);
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      color: var(--muted);
+    }
+
+    .pct{
+      font-weight:950;
+      color: var(--purple);
+      font-size: 18px;
+      white-space:nowrap;
+    }
+
+    .row2{
+      margin-top:10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .raw{
+      font-weight:900;
+      color:#475569;
+      font-size:13px;
+    }
+    .date{
+      font-size:12px;
+      font-weight:800;
+      color: var(--muted);
+    }
+
+    .bar-bg{
+      width: 140px;
+      height: 6px;
+      background:#eef2ff;
+      border-radius:999px;
+      overflow:hidden;
+      margin-top:8px;
+    }
+    .bar-fill{
+      height:100%;
       background: var(--purple);
-      border-radius: 10px;
+      width: 0%;
+    }
+
+    /* 3-dots menu */
+    .dots{
+      cursor:pointer;
+      user-select:none;
+      font-size:18px;
+      padding:6px 10px;
+      border-radius:10px;
+      border:1px solid transparent;
+    }
+    .dots:hover{
+      background:#f8fafc;
+      border-color: var(--border);
+    }
+
+    .menu{
+      position:absolute;
+      top: 44px;
+      right: 12px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+      overflow:hidden;
+      display:none;
+      min-width: 140px;
+      z-index: 50;
+    }
+    .menu.show{ display:block; }
+
+    .menu a, .menu button{
+      width:100%;
+      text-align:left;
+      background:none;
+      border:none;
+      padding:10px 12px;
+      font-weight:900;
+      font-size:13px;
+      cursor:pointer;
+      color: var(--ink);
+    }
+    .menu a:hover, .menu button:hover{ background:#f8fafc; }
+
+    .menu .danger{
+      color: var(--danger);
+    }
+    .menu .danger:hover{
+      background: rgba(239,68,68,0.08);
+    }
+
+    .empty{
+      padding: 14px 16px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    @media (min-width: 900px){
+      body{ padding: 40px; }
+      .scores{ grid-template-columns: 1fr 1fr; }
+      .bar-bg{ width: 160px; }
     }
   </style>
 </head>
@@ -163,58 +249,86 @@
   <div class="container">
     <div class="top">
       <h1>Performance History</h1>
-      <a class="btn" href="{% url 'dashboard' %}">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        Dashboard
-      </a>
+      <a class="btn" href="{% url 'dashboard' %}">⬅ Dashboard</a>
     </div>
 
-    <div class="card">
-      {% if scores %}
-        <table>
-          <thead>
-            <tr>
-              <th>Subject</th>
-              <th>Exam Year</th>
-              <th>Raw Score</th>
-              <th>Percentage</th>
-              <th>Saved Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for s in scores %}
-            <tr>
-              <td>
-                <div class="subject-name">{{ s.subject }}</div>
-              </td>
-              <td>
-                <span class="year-pill">{{ s.year }}</span>
-              </td>
-              <td style="color: #475569;">
-                {{ s.correct }} <span style="color: #cbd5e1; font-weight: 500;">/</span> {{ s.total }}
-              </td>
-<td>
-  <div class="pct">{{ s.percentage }}%</div>
-  
-  <div class="progress-bg">
-    <div class="progress-fill" style="width: {{ s.percentage_int }}%;"></div>
-  </div>
-</td>
-              <td>
-                <div class="muted-date">{{ s.created_at|date:"M d, Y" }}</div>
-                <div style="font-size: 11px; color: #cbd5e1;">{{ s.created_at|date:"H:i" }}</div>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <div class="empty">
-          <p>No academic records found.</p>
-          <a href="{% url 'add_score' %}" style="color: var(--purple); text-decoration: none;">Add your first score →</a>
+    {% if subjects_sorted %}
+      {% for subject, items in grouped_scores.items %}
+        <div class="subject-block">
+          <div class="subject-head">
+            <div class="subject-title">{{ subject }}:</div>
+            <div class="count">{{ items|length }} saved</div>
+          </div>
+
+          {% if items %}
+            <div class="scores">
+              {% for s in items %}
+                <div class="score-card">
+                  <div class="row1">
+                    <div class="meta">
+                      <div class="year">
+                        <span class="pill">{{ s.year }}</span>
+                        <span>{{ s.correct }}/{{ s.total }}</span>
+                      </div>
+
+                      <div class="bar-bg">
+                        <div class="bar-fill" style="width: {{ s.percentage_int }}%;"></div>
+                      </div>
+                    </div>
+
+                    <div style="display:flex; align-items:flex-start; gap:8px;">
+                      <div class="pct">{{ s.percentage }}%</div>
+
+                      <div class="dots" data-menu="menu-{{ s.id }}">⋮</div>
+
+                      <div class="menu" id="menu-{{ s.id }}">
+                        <a href="{% url 'edit_score' s.id %}">Edit</a>
+
+                        <form method="post" action="{% url 'delete_score' s.id %}" style="margin:0;">
+                          {% csrf_token %}
+                          <button type="submit" class="danger">Delete</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row2">
+                    <div class="raw">Saved score</div>
+                    <div class="date">{{ s.created_at|date:"M d, Y" }} • {{ s.created_at|date:"H:i" }}</div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="empty">No saved scores yet.</div>
+          {% endif %}
         </div>
-      {% endif %}
-    </div>
+      {% endfor %}
+    {% else %}
+      <div class="subject-block">
+        <div class="subject-head">
+          <div class="subject-title">No Subjects Yet</div>
+        </div>
+        <div class="empty">
+          You haven’t chosen your subjects yet. Go back and tap <strong>Add New</strong>.
+        </div>
+      </div>
+    {% endif %}
   </div>
+
+  <script>
+    // Toggle per-score dropdown menu
+    document.addEventListener("click", (e) => {
+      // close all menus if you clicked outside
+      const clickedDots = e.target.closest(".dots");
+      document.querySelectorAll(".menu").forEach(m => m.classList.remove("show"));
+
+      if (clickedDots) {
+        const id = clickedDots.getAttribute("data-menu");
+        const menu = document.getElementById(id);
+        if (menu) menu.classList.toggle("show");
+      }
+    });
+  </script>
 </body>
 </html>
