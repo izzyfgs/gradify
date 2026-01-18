@@ -1,0 +1,327 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Account Settings | Gradify</title>
+
+  <style>
+    :root {
+      --primary: #6d28d9;
+      --primary-soft: rgba(109, 40, 217, 0.1);
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark {
+      --bg: #0b0f1a;
+      --card: #161b2a;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #2d364d;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      transition: background 0.3s ease;
+      line-height: 1.5;
+    }
+
+    /* ===== NAVIGATION ===== */
+    .nav-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      z-index: 1000;
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .back-link svg {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.2s ease;
+    }
+
+    .back-link:hover svg { transform: translateX(-4px); }
+
+    /* ===== LAYOUT ===== */
+    .container {
+      max-width: 650px;
+      margin: 84px auto 40px;
+      padding: 0 16px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .page-desc {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    /* ===== CARDS ===== */
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .section-header h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    /* ===== FORM ELEMENTS ===== */
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .setting-item:last-of-type { border-bottom: none; }
+
+    .setting-info { flex: 1; padding-right: 16px; }
+    .setting-label {
+      display: block;
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 2px;
+    }
+    .setting-hint {
+      display: block;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ===== PROFESSIONAL SWITCH ===== */
+    .switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      cursor: pointer;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background-color: #cbd5e1;
+      border-radius: 34px;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(22px); }
+
+    /* ===== BUTTONS ===== */
+    .btn-save {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: opacity 0.2s;
+    }
+
+    .btn-save:active { opacity: 0.8; }
+
+    .btn-outline {
+      display: block;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: 12px;
+      transition: background 0.2s;
+    }
+
+    .btn-outline:hover { background: var(--primary-soft); }
+
+    .btn-danger {
+      color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    /* ===== MESSAGES ===== */
+    .msg {
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: #dcfce7;
+      color: #166534;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 20px;
+      border: 1px solid #bbf7d0;
+    }
+
+    @media (max-width: 480px) {
+      .page-title { font-size: 24px; }
+      .section-card { padding: 18px; }
+    }
+  </style>
+</head>
+
+<body class="{% if dark_mode %}dark{% endif %}">
+
+  <nav class="nav-bar">
+    <a href="{% url 'dashboard' %}" class="back-link">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Dashboard
+    </a>
+  </nav>
+
+  <main class="container">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="msg">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <h1 class="page-title">Settings</h1>
+    <p class="page-desc">Manage your profile, visibility, and account security.</p>
+
+    <div class="section-card">
+      <div class="section-header">
+        <h3>Appearance</h3>
+      </div>
+      <form method="POST" id="appearanceForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="toggle_dark_mode">
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Dark Mode</span>
+            <span class="setting-hint">Reduce eye strain in low-light environments.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" name="dark_mode" {% if dark_mode %}checked{% endif %} 
+                   onchange="document.getElementById('appearanceForm').submit()">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </form>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header">
+        <h3>Notifications</h3>
+      </div>
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_notifications">
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Interaction Likes</span>
+            <span class="setting-hint">Notify when someone likes your content.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" name="notify_likes" {% if s.notify_likes %}checked{% endif %}>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Comments</span>
+            <span class="setting-hint">Notify when someone replies to your posts.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" name="notify_comments" {% if s.notify_comments %}checked{% endif %}>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-save">Save Notification Settings</button>
+      </form>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header">
+        <h3>Account & Security</h3>
+      </div>
+      <a href="{% url 'password_change' %}" class="btn-outline">Update Password</a>
+      <a href="{% url 'export_data' %}" class="btn-outline">Request Data Export</a>
+      
+      <form method="POST" action="{% url 'deactivate_account' %}" style="margin-top: 12px;">
+        {% csrf_token %}
+        <button type="submit" class="btn-outline btn-danger" 
+                onclick="return confirm('Are you sure you want to deactivate your account? This will log you out immediately.')">
+          Deactivate Account
+        </button>
+      </form>
+    </div>
+  </main>
+
+</body>
+</html>

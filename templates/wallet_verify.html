@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradify | Verify</title>
+
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#fff;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --shadow:0 12px 30px rgba(2,6,23,0.08);
+      --grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --green:#16a34a;
+      --red:#ef4444;
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:Segoe UI, system-ui, Arial; background:var(--bg); color:var(--ink); }
+    .wrap{ max-width:560px; margin:0 auto; padding:18px 14px 30px; }
+
+    .top{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 0;
+    }
+    a{
+      text-decoration:none; color:var(--ink);
+      border:1px solid var(--border);
+      background:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      font-weight:950;
+      box-shadow: var(--shadow);
+    }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow: var(--shadow);
+      padding:16px;
+      margin-top:12px;
+    }
+
+    input{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      font-weight:900;
+      outline:none;
+      text-transform: uppercase;
+    }
+
+    .btn{
+      width:100%;
+      margin-top:12px;
+      border:none;
+      background:var(--grad);
+      color:#fff;
+      padding:14px;
+      border-radius:18px;
+      font-weight:950;
+      cursor:pointer;
+    }
+
+    .result{
+      margin-top:12px;
+      padding:12px;
+      border-radius:18px;
+      font-weight:900;
+      border:1px solid var(--border);
+      background:#fff;
+    }
+    .ok{ color: var(--green); border-color: rgba(22,163,74,0.35); }
+    .bad{ color: var(--red); border-color: rgba(239,68,68,0.35); }
+    .small{ margin-top:6px; color:var(--muted); font-weight:850; font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="top">
+      <a href="/wallet/">← Wallet</a>
+      <div style="font-weight:950;">Verify Transaction</div>
+      <div style="width:72px;"></div>
+    </div>
+
+    <div class="card">
+      <form method="post">
+        {% csrf_token %}
+        <input type="text" name="code" maxlength="15" placeholder="ENTER RECEIPT CODE" required />
+        <button class="btn" type="submit">Verify</button>
+      </form>
+
+      {% if verified == True %}
+        <div class="result ok">
+          ✅ Valid transaction
+          <div class="small">
+            Amount: ${{ tx.amount }} |
+            {{ tx.direction }} |
+            User: @{{ tx.user.username }} |
+            Code: {{ tx.code }}
+          </div>
+        </div>
+      {% elif verified == False %}
+        <div class="result bad">
+          ❌ Fake / Invalid transaction code
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Set Wallet PIN | Gradify</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-grad: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    
+    body { 
+      margin: 0; 
+      font-family: 'Plus Jakarta Sans', sans-serif; 
+      background: var(--bg); 
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden; /* No scrolling for a native app feel */
+    }
+
+    /* TOP NAVIGATION */
+    .nav {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    .back-btn {
+      text-decoration: none;
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      flex: 1;
+      padding: 0 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Centered for phone view */
+      max-width: 440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .icon-circle {
+      width: 64px;
+      height: 64px;
+      background: #f1f5f9;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 28px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin: 0 0 10px;
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* PIN INPUTS */
+    .pin-group {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .input-field {
+      position: relative;
+    }
+
+    .input-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      display: block;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      background: var(--surface);
+      border: 2px solid transparent;
+      border-radius: 18px;
+      padding: 18px;
+      font-size: 24px;
+      font-weight: 800;
+      font-family: inherit;
+      outline: none;
+      color: var(--text);
+      text-align: center;
+      letter-spacing: 15px; /* Huge spacing for PIN dots */
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      background: #fff;
+      border-color: #8b5cf6;
+      box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.15);
+    }
+
+    input::placeholder {
+      letter-spacing: 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    /* FOOTER ACTION */
+    .footer {
+      padding: 32px;
+    }
+
+    .btn {
+      width: 100%;
+      background: var(--primary-grad);
+      color: white;
+      border: none;
+      padding: 18px;
+      border-radius: 18px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.25);
+      transition: transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    /* MESSAGE */
+    .msg {
+      background: #fef2f2;
+      color: #b91c1c;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="javascript:history.back()" class="back-btn">✕</a>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <div class="icon-circle">🔐</div>
+      <h1>Wallet Security</h1>
+      <p>Set a 4-digit PIN to secure your payments and protect your funds.</p>
+    </div>
+
+    {% if messages %}
+      {% for m in messages %}
+        <div class="msg">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" id="pinForm">
+      {% csrf_token %}
+      <div class="pin-group">
+        <div class="input-field">
+          <span class="input-label">New PIN</span>
+          <input type="password" name="pin1" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required autofocus>
+        </div>
+        
+        <div class="input-field">
+          <span class="input-label">Confirm PIN</span>
+          <input type="password" name="pin2" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••" required>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="footer">
+    <button type="submit" form="pinForm" class="btn" id="saveBtn">Activate Wallet PIN</button>
+  </div>
+
+  <script>
+    // Simple logic to disable button on submit to prevent double-click
+    const form = document.getElementById('pinForm');
+    const btn = document.getElementById('saveBtn');
+
+    form.onsubmit = () => {
+      btn.disabled = true;
+      btn.innerText = "Securing Wallet...";
+      btn.style.opacity = "0.7";
+    };
+  </script>
+
+</body>
+</html>

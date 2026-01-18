@@ -1,0 +1,129 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradify | Notifications</title>
+
+  <style>
+    :root{
+      --purple-grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --purple:#6d28d9;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --soft:#f8fafc;
+      --shadow: 0 14px 35px rgba(2,6,23,0.08);
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:"Segoe UI",system-ui; background:#fff; color:var(--ink); }
+    .wrap{ max-width: 760px; margin:0 auto; padding: 16px 14px 40px; }
+
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .h{
+      font-weight: 950;
+      letter-spacing:-0.5px;
+      font-size: 20px;
+      margin:0;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      font-weight:900;
+      font-size:13px;
+      cursor:pointer;
+      text-decoration:none;
+      color:var(--ink);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .btn:hover{ border-color: var(--purple); color: var(--purple); }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:22px;
+      background:#fff;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .item{
+      padding: 14px;
+      border-bottom: 1px solid rgba(226,232,240,0.8);
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .item:last-child{ border-bottom:none; }
+    .dot{
+      width:10px; height:10px;
+      border-radius:50%;
+      background: var(--purple);
+      margin-top: 6px;
+      flex-shrink:0;
+    }
+    .msg{
+      font-weight: 900;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .time{
+      margin-top: 6px;
+      color: var(--muted);
+      font-weight: 850;
+      font-size: 12px;
+    }
+    .link{
+      display:inline-block;
+      margin-top: 8px;
+      font-weight: 950;
+      color: var(--purple);
+      text-decoration:none;
+    }
+    .link:hover{ text-decoration: underline; }
+
+    .empty{
+      padding: 22px;
+      text-align:center;
+      font-weight: 900;
+      color: var(--muted);
+      background: var(--soft);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <h1 class="h">Notifications</h1>
+      <a class="btn" href="{% url 'dashboard' %}">Back to Dashboard</a>
+    </div>
+
+    <div class="card">
+      {% for n in notes %}
+        <div class="item">
+          <div class="dot"></div>
+          <div>
+            <div class="msg">{{ n.message }}</div>
+            <div class="time">{{ n.created_at|date:"M d, Y • H:i" }}</div>
+            {% if n.link %}
+              <a class="link" href="{{ n.link }}">View</a>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty">No notifications yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

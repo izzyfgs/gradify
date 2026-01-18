@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chat with @{{ other.username }}</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --purple: #6d28d9; --green: #22c55e; --bg: #f9fafb;
+      --border: #f1f5f9; --ink: #0f172a; --muted: #64748b; --danger: #ef4444;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; }
+    body { margin: 0; background: #fff; height: 100vh; display: flex; flex-direction: column; color: var(--ink); overflow: hidden; }
+
+    /* Header */
+    .header {
+        padding: 8px 16px; display: flex; align-items: center; 
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border); position: fixed; top: 0; width: 100%; z-index: 100; height: 64px;
+    }
+    .back-link { text-decoration: none; color: var(--ink); margin-right: 12px; display: flex; align-items: center; width: 32px; height: 32px; }
+    .profile-meta-link { display: flex; align-items: center; gap: 12px; text-decoration: none; flex: 1; color: inherit; }
+    .header-dp { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #f1f5f9; border: 1px solid rgba(0,0,0,0.05); }
+    .header-dp img { width: 100%; height: 100%; object-fit: cover; }
+    .u-name { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+    .u-status { font-size: 12px; display: flex; align-items: center; gap: 4px; }
+    .status-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
+    .online-text { color: var(--green); font-weight: 600; }
+    .offline-text { color: var(--muted); font-weight: 500; }
+
+    /* Messages Area */
+    .msgs { flex: 1; overflow-y: auto; padding: 80px 16px 110px; display: flex; flex-direction: column; gap: 10px; background: #fff; }
+    .bubble { max-width: 80%; padding: 12px 16px; font-size: 14.5px; line-height: 1.45; position: relative; word-wrap: break-word; }
+    .bubble.me { align-self: flex-end; background: var(--purple); color: #fff; border-radius: 20px 20px 4px 20px; }
+    .bubble.them { align-self: flex-start; background: var(--bg); color: var(--ink); border-radius: 20px 20px 20px 4px; border: 1px solid var(--border); }
+    .msg-time { font-size: 10px; opacity: 0.6; margin-top: 5px; display: block; font-weight: 500; }
+    .me .msg-time { text-align: right; color: rgba(255,255,255,0.9); }
+    .bubble img { max-width: 100%; border-radius: 12px; display: block; margin-top: 8px; }
+    
+    /* Audio Player Styling */
+    audio { height: 35px; width: 200px; margin-top: 8px; border-radius: 30px; }
+    .me audio { filter: invert(100%); opacity: 0.9; }
+
+    /* Input Area */
+    .input-wrap { position: fixed; bottom: 0; width: 100%; padding: 12px 16px 20px; background: #fff; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .action-btn { background: #f3f4f6; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; transition: all 0.2s; }
+    .input-box { flex: 1; background: #f3f4f6; border: 1px solid transparent; padding: 12px 18px; border-radius: 24px; outline: none; font-size: 15px; }
+    .send-btn { background: var(--purple); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    /* Recording State */
+    .recording { background: var(--danger) !important; animation: rec-pulse 1.5s infinite; }
+    .recording svg { stroke: #fff !important; }
+    
+    @keyframes rec-pulse {
+        0% { transform: scale(1); }
+        70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <a href="{% url 'messages_inbox' %}" class="back-link">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </a>
+    <a href="{% url 'profile' other.username %}" class="profile-meta-link">
+        <div class="header-dp">
+            <img src="{% if other.userprofile.profile_pic %}{{ other.userprofile.profile_pic.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}">
+        </div>
+        <div class="header-info">
+            <div class="u-name">@{{ other.username }}</div>
+            <div class="u-status">
+                {% if is_online %}<div class="status-dot online-pulse" style="width:8px;height:8px;background:var(--green);border-radius:50%;"></div><span class="online-text">Active now</span>
+                {% else %}<span class="offline-text">{{ status_text }}</span>{% endif %}
+            </div>
+        </div>
+    </a>
+  </div>
+
+  <div class="msgs" id="chatWindow">
+    {% for m in messages %}
+      <div class="bubble {% if m.sender == request.user %}me{% else %}them{% endif %}" data-id="{{ m.id }}">
+        {% if m.text %}<div>{{ m.text }}</div>{% endif %}
+        {% if m.image %}<img src="{{ m.image.url }}">{% endif %}
+        {% if m.audio %}<audio controls><source src="{{ m.audio.url }}" type="audio/webm"></audio>{% endif %}
+        <span class="msg-time">{{ m.created_at|date:"g:i a" }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <input type="file" id="imageInput" accept="image/*" style="display: none;">
+
+  <form class="input-wrap" id="chatForm">
+    {% csrf_token %}
+    <button type="button" class="action-btn" onclick="document.getElementById('imageInput').click()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+    <button type="button" class="action-btn" id="micBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg></button>
+    <input type="text" id="msgContent" class="input-box" placeholder="Message..." autocomplete="off">
+    <button type="submit" class="send-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button>
+  </form>
+
+<script>
+    const win = document.getElementById('chatWindow');
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('msgContent');
+    const imgInput = document.getElementById('imageInput');
+    const micBtn = document.getElementById('micBtn');
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    win.scrollTop = win.scrollHeight;
+
+    // Helper to get CSRF from cookies (most reliable for AJAX)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function poll() {
+        const lastId = win.lastElementChild ? win.lastElementChild.dataset.id : 0;
+        try {
+            const res = await fetch(`{% url 'chat_poll_ajax' conv.id %}?after=${lastId}`);
+            const data = await res.json();
+            if (data.ok && data.messages?.length > 0) {
+                data.messages.forEach(m => {
+                    if (document.querySelector(`[data-id="${m.id}"]`)) return;
+                    
+                    const b = document.createElement('div');
+                    b.className = `bubble ${m.mine ? 'me' : 'them'}`;
+                    b.dataset.id = m.id;
+                    
+                    let html = '';
+                    if (m.text) html += `<div>${m.text}</div>`;
+                    if (m.image_url) html += `<img src="${m.image_url}">`;
+                    
+                    // Fixed: Added type="audio/webm" to match your recording
+                    if (m.audio_url) {
+                        html += `<audio controls style="width:200px;"><source src="${m.audio_url}" type="audio/webm"></audio>`;
+                    }
+                    
+                    html += `<span class="msg-time">${m.time}</span>`;
+                    b.innerHTML = html;
+                    win.appendChild(b);
+                });
+                win.scrollTop = win.scrollHeight;
+            }
+        } catch(e) { console.error("Poll error:", e); }
+    }
+
+    async function send(formData) {
+        try {
+            const res = await fetch("{% url 'chat_send_ajax' conv.id %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    // This Header is what Django's CSRF middleware looks for first
+                    "X-CSRFToken": getCookie('csrftoken')
+                }
+            });
+            const result = await res.json();
+            if (result.ok) {
+                poll();
+            } else {
+                alert(result.error || "Failed to send");
+            }
+        } catch(e) {
+            console.error("Send error:", e);
+        }
+    }
+
+    form.onsubmit = e => {
+        e.preventDefault();
+        const val = input.value.trim();
+        if (!val) return;
+        const data = new FormData();
+        data.append('text', val);
+        input.value = '';
+        send(data);
+    };
+
+    imgInput.onchange = () => {
+        if (!imgInput.files?.[0]) return;
+        const data = new FormData();
+        data.append('image', imgInput.files[0]);
+        imgInput.value = '';
+        send(data);
+    };
+
+    micBtn.onclick = async () => {
+        if (!isRecording) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    if (audioBlob.size < 1000) return;
+
+                    const data = new FormData();
+                    data.append('audio', audioBlob, `voice-${Date.now()}.webm`);
+                    send(data);
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                micBtn.classList.add('recording');
+            } catch (err) { alert("Mic error: " + err.message); }
+        } else {
+            if (mediaRecorder) mediaRecorder.stop();
+            isRecording = false;
+            micBtn.classList.remove('recording');
+        }
+    };
+
+    setInterval(poll, 2000);
+    poll();
+</script>
+        
+</body>
+</html>

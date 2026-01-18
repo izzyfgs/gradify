@@ -1,0 +1,1079 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradify | {{ user_obj.username }} Profile</title>
+
+  <style>
+    :root{
+      --purple-grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --purple: #6d28d9;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --soft:#f8fafc;
+      --danger:#ef4444;
+      --shadow: 0 14px 35px rgba(2,6,23,0.08);
+      --shadow2: 0 24px 70px rgba(2,6,23,0.35);
+      --topbar-h: 66px;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ margin:0; padding:0; font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif; background:#fff; color:var(--ink); overflow-x:hidden; }
+
+    /* ✅ fixed top bar space */
+    body{ padding-top: var(--topbar-h); }
+
+    .wrap{ max-width: 980px; margin: 0 auto; padding: 14px 14px 40px; }
+
+    /* ===== TOP NAV (FIXED) ===== */
+    .topnav{
+      position: fixed;
+      top:0; left:0; right:0;
+      height: var(--topbar-h);
+      z-index: 3000;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+    }
+    .topnav .inner{
+      width:100%;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight: 950; letter-spacing: -0.4px;
+      user-select:none;
+    }
+    .brand .logo{
+      width:38px; height:38px; border-radius:12px;
+      background: var(--purple-grad);
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:950;
+      box-shadow: 0 12px 25px rgba(109,40,217,0.25);
+    }
+    .nav-actions{ display:flex; gap:10px; align-items:center; }
+    .btn{
+      border:1px solid var(--border);
+      background:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      font-weight:900;
+      font-size:13px;
+      cursor:pointer;
+      text-decoration:none;
+      color:var(--ink);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+    .btn:hover{ border-color: var(--purple); color: var(--purple); }
+    .btn.primary{
+      border: none;
+      background: var(--purple-grad);
+      color:#fff;
+    }
+    .btn.primary:hover{ opacity:0.95; }
+
+    /* ===== HERO ===== */
+    .hero{
+      border:1px solid var(--border);
+      border-radius: 22px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow: var(--shadow);
+    }
+    .cover{
+      height: 190px;
+      background: var(--purple-grad);
+      position: relative;
+    }
+    .cover img{
+      width:100%; height:100%;
+      object-fit: cover;
+      display:block;
+    }
+
+    .hero-body{
+      position: relative;
+      padding: 14px 14px 16px;
+    }
+
+    .avatar{
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      border: 5px solid #fff;
+      background:#e2e8f0;
+      overflow:hidden;
+      position: absolute;
+      top: -52px;
+      left: 14px;
+      box-shadow: 0 18px 45px rgba(2,6,23,0.18);
+    }
+    .avatar img{ width:100%; height:100%; object-fit: cover; display:block; }
+
+    .hero-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+      padding-left: 122px;
+      padding-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .nameblock .username{
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: -0.6px;
+      margin: 0;
+      line-height: 1.15;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    /* ✅ verified badge */
+    .verified{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:22px; height:22px;
+      border-radius:999px;
+      background: #1d4ed8;
+      box-shadow: 0 8px 20px rgba(29,78,216,0.25);
+      flex-shrink:0;
+    }
+    .verified svg{ width:14px; height:14px; fill:#fff; }
+
+    .nameblock .bio{
+      margin-top: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.35;
+    }
+
+    .stats{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+    }
+    .stat{
+      background: var(--soft);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 12px;
+      min-width: 110px;
+    }
+    .stat .num{
+      font-size: 18px;
+      font-weight: 950;
+      color: var(--purple);
+      line-height: 1;
+    }
+    .stat .label{
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    /* ===== COMPOSER (COMPACT + EXPANDS) ===== */
+    .composer{
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background:#fff;
+      box-shadow: var(--shadow);
+      padding: 12px;
+    }
+
+    .composer-mini{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      cursor:pointer;
+    }
+    .mini-ava{
+      width:40px; height:40px;
+      border-radius:50%;
+      background:#e2e8f0;
+      overflow:hidden;
+      flex-shrink:0;
+    }
+    .mini-ava img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    .mini-input{
+      flex:1;
+      border:1px solid var(--border);
+      background: var(--soft);
+      border-radius: 999px;
+      padding: 12px 14px;
+      font-weight:900;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .mini-input:hover{
+      border-color: rgba(109,40,217,0.35);
+      color: var(--ink);
+    }
+
+    /* hidden by default */
+    .composer-form{ display:none; margin-top: 10px; }
+    .composer.open .composer-form{ display:block; }
+
+    .composer textarea{
+      width:100%;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 12px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      outline:none;
+      min-height: 92px;
+      resize: vertical;
+    }
+    .composer textarea:focus{
+      border-color: var(--purple);
+      box-shadow: 0 0 0 4px rgba(109,40,217,0.08);
+    }
+    .composer .row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .counter{
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--muted);
+    }
+
+    /* ===== FEED ===== */
+    .feed{
+      margin-top: 14px;
+      display:flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .post{
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background:#fff;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      cursor:pointer; /* ✅ tap anywhere */
+      position: relative;
+    }
+
+    /* ===== POST FOCUS (FACEBOOK-LIKE OPEN) ===== */
+    .post-backdrop{
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,0.55);
+      z-index: 3500;
+      display:none;
+    }
+    .post-backdrop.show{ display:block; }
+
+    .post.focus{
+      position: fixed;
+      z-index: 3600;
+      left: 12px;
+      right: 12px;
+      top: calc(var(--topbar-h) + 10px);
+      bottom: 12px;
+      border-radius: 20px;
+      overflow:auto;
+      cursor: default;
+      box-shadow: var(--shadow2);
+    }
+    .focus-head{
+      display:none;
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+      z-index: 10;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .post.focus .focus-head{ display:flex; }
+    .focus-title{
+      font-weight:950;
+      letter-spacing:-0.4px;
+    }
+
+    .post-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-top: 2px;
+    }
+    .p-left{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      min-width:0;
+    }
+    .p-ava{
+      width:44px; height:44px;
+      border-radius:50%;
+      background:#e2e8f0;
+      overflow:hidden;
+      flex-shrink:0;
+      cursor:pointer;
+    }
+    .p-ava img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    .p-meta{ min-width:0; }
+    .p-user{
+      font-weight: 950;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .p-time{
+      font-weight: 800;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top:2px;
+    }
+
+    .post-body{
+      margin-top: 10px;
+      font-weight: 750;
+      font-size: 14px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .actions{
+      margin-top: 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      flex-wrap: wrap;
+      cursor: default;
+    }
+
+    .act-left{ display:flex; gap:10px; flex-wrap: wrap; }
+    .chip{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius: 14px;
+      padding: 8px 10px;
+      font-weight: 900;
+      font-size: 13px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .chip:hover{ border-color: var(--purple); color: var(--purple); }
+    .chip.danger:hover{ border-color: var(--danger); color: var(--danger); }
+
+    .counts{
+      display:flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-weight: 900;
+      font-size: 13px;
+      cursor: default;
+    }
+    .counts span{ cursor:pointer; }
+    .counts span:hover{ color: var(--purple); }
+
+    /* COMMENTS PANEL */
+    .comments{
+      margin-top: 12px;
+      display:none;
+      border-top: 1px dashed var(--border);
+      padding-top: 12px;
+      cursor: default;
+    }
+    .comments.open{ display:block; }
+
+    .comment{
+      display:flex;
+      gap:10px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(226,232,240,0.7);
+    }
+    .comment:last-child{ border-bottom:none; }
+
+    .c-ava{
+      width:36px; height:36px;
+      border-radius:50%;
+      background:#e2e8f0;
+      overflow:hidden;
+      flex-shrink:0;
+      cursor:pointer;
+    }
+    .c-ava img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    .c-body{ min-width:0; }
+    .c-user{
+      font-weight: 950;
+      font-size: 13px;
+      margin:0;
+      line-height:1.2;
+    }
+    .c-text{
+      margin-top: 4px;
+      font-weight: 750;
+      font-size: 13px;
+      color: var(--ink);
+      word-break: break-word;
+    }
+
+    .comment-form{
+      display:flex;
+      gap:10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .comment-form input{
+      flex:1;
+      min-width: 180px;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 800;
+      outline:none;
+    }
+    .comment-form input:focus{
+      border-color: var(--purple);
+      box-shadow: 0 0 0 4px rgba(109,40,217,0.08);
+    }
+
+    /* MODALS (LIKES + EDIT) */
+    .modal{
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,0.45);
+      display:none;
+      z-index: 4000;
+      padding: 18px;
+      align-items:center;
+      justify-content:center;
+    }
+    .modal.show{ display:flex; }
+    .sheet{
+      width: 100%;
+      max-width: 520px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+    }
+    .sheet .head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+    .sheet .head .h{
+      font-weight: 950;
+      letter-spacing: -0.4px;
+    }
+    .xbtn{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor:pointer;
+      font-weight: 950;
+    }
+    .xbtn:hover{ border-color: var(--purple); color: var(--purple); }
+
+    .sheet .body{
+      padding: 14px;
+      max-height: 70vh;
+      overflow:auto;
+    }
+    .user-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(226,232,240,0.7);
+      cursor:pointer;
+      text-decoration:none;
+      color: var(--ink);
+    }
+    .user-row:last-child{ border-bottom:none; }
+    .user-row:hover{ background: var(--soft); }
+    .user-row .uava{
+      width:36px; height:36px;
+      border-radius: 50%;
+      overflow:hidden;
+      background:#e2e8f0;
+      flex-shrink:0;
+    }
+    .user-row .uava img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .user-row .uname{
+      font-weight: 950;
+      font-size: 14px;
+    }
+
+    .edit-area textarea{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      outline:none;
+      min-height: 110px;
+      resize: vertical;
+    }
+    .edit-area textarea:focus{
+      border-color: var(--purple);
+      box-shadow: 0 0 0 4px rgba(109,40,217,0.08);
+    }
+    .edit-actions{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    /* MOBILE */
+    @media (max-width: 520px){
+      :root{ --topbar-h: 64px; }
+      .cover{ height: 165px; }
+      .avatar{ width: 96px; height: 96px; top: -48px; }
+      .hero-row{ padding-left: 112px; }
+      .nameblock .username{ font-size: 20px; }
+      .stat{ min-width: 98px; }
+      .composer textarea{ min-height: 86px; }
+      .btn{ padding: 9px 10px; border-radius: 13px; }
+      .post.focus{ left: 10px; right: 10px; bottom: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FIXED TOP NAV -->
+  <div class="topnav">
+    <div class="inner">
+      <div class="brand">
+        <div class="logo">G</div>
+        <div>Gradify</div>
+      </div>
+
+      <div class="nav-actions">
+        <a class="btn" href="{% url 'dashboard' %}">Dashboard</a>
+
+        {% if request.user == user_obj %}
+          <a class="btn primary" href="{% url 'edit_profile' %}">Edit Profile</a>
+        {% else %}
+          <form method="post" action="{% url 'follow_toggle' user_obj.username %}" style="margin:0;">
+            {% csrf_token %}
+            {% if is_following %}
+              <button type="submit" class="btn">Unfollow</button>
+            {% else %}
+              <button type="submit" class="btn primary">Follow</button>
+            {% endif %}
+          </form>
+          <button class="btn" type="button" onclick="alert('Messages coming soon')">Message</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <section class="hero">
+      <div class="cover">
+        {% if profile.cover_pic %}
+          <img src="{{ profile.cover_pic.url }}" alt="Cover">
+        {% endif %}
+      </div>
+
+      <div class="hero-body">
+        <div class="avatar" title="Profile Photo">
+          {% if profile.profile_pic %}
+            <img src="{{ profile.profile_pic.url }}" alt="Avatar">
+          {% else %}
+            <img src="{% static 'default_avatar.png' %}" alt="Avatar">
+          {% endif %}
+        </div>
+
+        <div class="hero-row">
+          <div class="nameblock">
+            <h1 class="username">
+              @{{ user_obj.username }}
+
+              {# ✅ Verified badge rule: 10 posts + 5 followers #}
+              {% if posts|length >= 10 and followers_count >= 5 %}
+                <span class="verified" title="Verified">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9.0 16.2 4.8 12l1.4-1.4L9 13.4l8.8-8.8L19.2 6z"></path>
+                  </svg>
+                </span>
+              {% endif %}
+            </h1>
+
+            <div class="bio">
+              {% if profile.bio %}
+                {{ profile.bio }}
+              {% else %}
+                <span style="color:var(--muted)">No bio yet.</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="num">{{ posts|length }}</div>
+              <div class="label">Posts</div>
+            </div>
+            <div class="stat">
+              <div class="num">{{ followers_count }}</div>
+              <div class="label">Followers</div>
+            </div>
+            <div class="stat">
+              <div class="num">{{ following_count }}</div>
+              <div class="label">Following</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {% if request.user == user_obj %}
+      <!-- ✅ COMPACT COMPOSER (expands on tap) -->
+      <section class="composer" id="composer">
+        <div class="composer-mini" id="composerMini">
+          <div class="mini-ava">
+            {% if profile.profile_pic %}
+              <img src="{{ profile.profile_pic.url }}" alt="Avatar">
+            {% else %}
+              <img src="{% static 'default_avatar.png' %}" alt="Avatar">
+            {% endif %}
+          </div>
+          <div class="mini-input">What’s on your mind?</div>
+        </div>
+
+        <div class="composer-form">
+          <form method="post" action="{% url 'create_post' %}">
+            {% csrf_token %}
+            <textarea name="content" id="postBox" maxlength="1200" placeholder="Write something..."></textarea>
+            <div class="row">
+              <div class="counter"><span id="count">0</span>/1200</div>
+              <div style="display:flex; gap:10px;">
+                <button class="btn" type="button" id="cancelComposer">Cancel</button>
+                <button class="btn primary" type="submit">Post</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="feed">
+      {% for p in posts %}
+        <article class="post" data-post="{{ p.id }}" id="post-{{ p.id }}">
+          <!-- ✅ Focus header (only shows when opened) -->
+          <div class="focus-head">
+            <div class="focus-title">Post</div>
+            <button class="btn" type="button" onclick="closePostFocus({{ p.id }})">Back</button>
+          </div>
+
+          <div class="post-head">
+            <div class="p-left">
+              <a class="p-ava" href="{% url 'profile' p.user.username %}" title="Open profile">
+                {% with pp=p.user.userprofile %}
+                  {% if pp.profile_pic %}
+                    <img src="{{ pp.profile_pic.url }}" alt="Avatar">
+                  {% else %}
+                    <img src="{% static 'default_avatar.png' %}" alt="Avatar">
+                  {% endif %}
+                {% endwith %}
+              </a>
+
+              <div class="p-meta">
+                <div class="p-user">@{{ p.user.username }}</div>
+                <div class="p-time">{{ p.created_at|date:"M d, Y • H:i" }}</div>
+              </div>
+            </div>
+
+            {% if request.user == p.user and p.can_edit %}
+              <button class="chip" type="button" onclick="openEdit({{ p.id }})">Edit</button>
+            {% endif %}
+          </div>
+
+          <div class="post-body" id="postText-{{ p.id }}">{{ p.content }}</div>
+
+          <div class="actions">
+            <div class="act-left">
+              <button class="chip" type="button" onclick="toggleLike({{ p.id }})" id="likeBtn-{{ p.id }}">
+                👍 Like
+              </button>
+              <button class="chip" type="button" onclick="toggleComments({{ p.id }})">
+                💬 Comment
+              </button>
+            </div>
+
+            <div class="counts">
+              <span onclick="openLikes({{ p.id }})" id="likeCount-{{ p.id }}">
+                {{ p.likes.count }} like{{ p.likes.count|pluralize }}
+              </span>
+
+              <span onclick="toggleComments({{ p.id }})" id="commentCount-{{ p.id }}">
+                {{ p.comments.count }} comment{{ p.comments.count|pluralize }}
+              </span>
+            </div>
+          </div>
+
+          <!-- ✅ comments (will auto-open when post is focused) -->
+          <div class="comments" id="comments-{{ p.id }}">
+            <div id="commentList-{{ p.id }}">
+              {% for c in p.comments.all %}
+                <div class="comment">
+                  <a class="c-ava" href="{% url 'profile' c.user.username %}" title="Open profile">
+                    {% with cp=c.user.userprofile %}
+                      {% if cp.profile_pic %}
+                        <img src="{{ cp.profile_pic.url }}" alt="Avatar">
+                      {% else %}
+                        <img src="{% static 'default_avatar.png' %}" alt="Avatar">
+                      {% endif %}
+                    {% endwith %}
+                  </a>
+                  <div class="c-body">
+                    <p class="c-user">@{{ c.user.username }}</p>
+                    <div class="c-text">{{ c.text }}</div>
+                    <div class="p-time" style="margin-top:6px;">{{ c.created_at|date:"M d, Y • H:i" }}</div>
+                  </div>
+                </div>
+              {% empty %}
+                <div style="font-weight:900; color:var(--muted);">No comments yet.</div>
+              {% endfor %}
+            </div>
+
+            <div class="comment-form">
+              <input type="text" maxlength="250" placeholder="Write a comment..." id="commentInput-{{ p.id }}">
+              <button class="btn primary" type="button" onclick="sendComment({{ p.id }})">Send</button>
+            </div>
+          </div>
+
+          <!-- likes data for modal -->
+          <div id="likesData-{{ p.id }}" style="display:none;">
+            {% for lk in p.likes.all %}
+              <div class="liker"
+                   data-username="{{ lk.user.username }}"
+                   data-has-pic="{% if lk.user.userprofile.profile_pic %}1{% else %}0{% endif %}"
+                   data-pic="{% if lk.user.userprofile.profile_pic %}{{ lk.user.userprofile.profile_pic.url }}{% endif %}">
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+      {% empty %}
+        <div style="border:1px dashed var(--border); border-radius:22px; padding:18px; background:var(--soft); font-weight:900; color:var(--muted);">
+          No posts yet.
+        </div>
+      {% endfor %}
+    </section>
+
+  </div>
+
+  <!-- ✅ BACKDROP FOR POST FOCUS -->
+  <div class="post-backdrop" id="postBackdrop" onclick="closeAnyFocusedPost()"></div>
+
+  <!-- LIKES MODAL -->
+  <div class="modal" id="likesModal">
+    <div class="sheet">
+      <div class="head">
+        <div class="h">Likes</div>
+        <button class="xbtn" type="button" onclick="closeLikes()">✕</button>
+      </div>
+      <div class="body" id="likesBody"></div>
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal" id="editModal">
+    <div class="sheet">
+      <div class="head">
+        <div class="h">Edit post</div>
+        <button class="xbtn" type="button" onclick="closeEdit()">✕</button>
+      </div>
+      <div class="body">
+        <form method="post" id="editForm">
+          {% csrf_token %}
+          <div class="edit-area">
+            <textarea name="content" id="editText"></textarea>
+          </div>
+          <div class="edit-actions">
+            <button type="button" class="btn" onclick="closeEdit()">Cancel</button>
+            <button type="submit" class="btn primary">Save</button>
+          </div>
+        </form>
+
+        <div style="margin-top:10px; font-weight:900; color:var(--muted); font-size:12px;">
+          You can edit only within 10 minutes of posting.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Composer compact expand/collapse =====
+    const composer = document.getElementById("composer");
+    const composerMini = document.getElementById("composerMini");
+    const cancelComposer = document.getElementById("cancelComposer");
+    const postBox = document.getElementById("postBox");
+    const countEl = document.getElementById("count");
+
+    if (composer && composerMini) {
+      composerMini.addEventListener("click", () => {
+        composer.classList.add("open");
+        setTimeout(() => { if(postBox) postBox.focus(); }, 30);
+      });
+    }
+    if (cancelComposer) {
+      cancelComposer.addEventListener("click", () => {
+        composer.classList.remove("open");
+        if(postBox) postBox.value = "";
+        if(countEl) countEl.textContent = "0";
+      });
+    }
+    if (postBox && countEl) {
+      postBox.addEventListener("input", () => {
+        countEl.textContent = String(postBox.value.length || 0);
+      });
+    }
+
+    // ===== Post Focus (tap post to open like Facebook) =====
+    const backdrop = document.getElementById("postBackdrop");
+    function openPostFocus(postId){
+      closeAnyFocusedPost();
+      const el = document.getElementById("post-" + postId);
+      if(!el) return;
+      el.classList.add("focus");
+      backdrop.classList.add("show");
+
+      // always open comments when focused
+      const comments = document.getElementById("comments-" + postId);
+      if(comments) comments.classList.add("open");
+
+      // prevent background scroll
+      document.body.style.overflow = "hidden";
+    }
+
+    function closePostFocus(postId){
+      const el = document.getElementById("post-" + postId);
+      if(!el) return;
+      el.classList.remove("focus");
+      backdrop.classList.remove("show");
+      document.body.style.overflow = "";
+    }
+
+    function closeAnyFocusedPost(){
+      document.querySelectorAll(".post.focus").forEach(p => p.classList.remove("focus"));
+      if(backdrop) backdrop.classList.remove("show");
+      document.body.style.overflow = "";
+    }
+
+    // open on tap, but ignore taps on buttons/links/inputs inside post
+    document.querySelectorAll(".post").forEach(post => {
+      post.addEventListener("click", (e) => {
+        if (e.target.closest("button, a, input, textarea, form, .chip, .xbtn")) return;
+        const postId = post.getAttribute("data-post");
+        openPostFocus(postId);
+      });
+    });
+
+    // ===== Comments toggle (still works) =====
+    function toggleComments(postId){
+      const box = document.getElementById("comments-" + postId);
+      if(!box) return;
+      box.classList.toggle("open");
+    }
+
+    // ===== Likes Modal (kept) =====
+    function openLikes(postId){
+      const modal = document.getElementById("likesModal");
+      const body = document.getElementById("likesBody");
+      const dataWrap = document.getElementById("likesData-" + postId);
+      if(!modal || !body || !dataWrap) return;
+
+      body.innerHTML = "";
+      const rows = dataWrap.querySelectorAll(".liker");
+
+      if(rows.length === 0){
+        body.innerHTML = "<div style='font-weight:900;color:var(--muted)'>No likes yet.</div>";
+      } else {
+        rows.forEach(r => {
+          const u = r.getAttribute("data-username");
+          const hasPic = r.getAttribute("data-has-pic") === "1";
+          const pic = r.getAttribute("data-pic");
+
+          const a = document.createElement("a");
+          a.className = "user-row";
+          a.href = "/profile/" + u + "/";
+
+          const ava = document.createElement("div");
+          ava.className = "uava";
+          const img = document.createElement("img");
+          img.src = hasPic ? pic : "{% static 'default_avatar.png' %}";
+          img.alt = "Avatar";
+          ava.appendChild(img);
+
+          const name = document.createElement("div");
+          name.className = "uname";
+          name.textContent = "@" + u;
+
+          a.appendChild(ava);
+          a.appendChild(name);
+          body.appendChild(a);
+        });
+      }
+
+      modal.classList.add("show");
+    }
+
+    function closeLikes(){
+      const modal = document.getElementById("likesModal");
+      if(modal) modal.classList.remove("show");
+    }
+
+    // ===== Edit Modal (kept) =====
+    function openEdit(postId){
+      const modal = document.getElementById("editModal");
+      const text = document.getElementById("postText-" + postId);
+      const editText = document.getElementById("editText");
+      const form = document.getElementById("editForm");
+      if(!modal || !text || !editText || !form) return;
+
+      editText.value = text.textContent.trim();
+      form.action = "/posts/" + postId + "/edit/";
+      modal.classList.add("show");
+    }
+
+    function closeEdit(){
+      const modal = document.getElementById("editModal");
+      if(modal) modal.classList.remove("show");
+    }
+
+    // ===== Like + Comment backend hooks =====
+    // NOTE: keep your existing endpoints; if yours differ, replace URLs below.
+    async function toggleLike(postId){
+      try{
+        const res = await fetch("/posts/" + postId + "/like/", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+          }
+        });
+        const data = await res.json();
+
+        // expects: {likes: number}
+        const likeCount = document.getElementById("likeCount-" + postId);
+        if(likeCount) likeCount.textContent = data.likes + " like" + (data.likes === 1 ? "" : "s");
+      }catch(err){
+        console.log(err);
+      }
+    }
+
+    async function sendComment(postId){
+      const input = document.getElementById("commentInput-" + postId);
+      if(!input) return;
+      const text = input.value.trim();
+      if(!text) return;
+
+      try{
+        const res = await fetch("/posts/" + postId + "/comment/", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({text})
+        });
+
+        const data = await res.json();
+        // expects: {ok:true, comment_html:"...", comments:number}
+        if(data.comment_html){
+          const list = document.getElementById("commentList-" + postId);
+          if(list){
+            // append at top like social apps
+            list.insertAdjacentHTML("afterbegin", data.comment_html);
+          }
+        }
+
+        const cc = document.getElementById("commentCount-" + postId);
+        if(cc && typeof data.comments === "number"){
+          cc.textContent = data.comments + " comment" + (data.comments === 1 ? "" : "s");
+        }
+
+        input.value = "";
+      }catch(err){
+        console.log(err);
+      }
+    }
+
+    // CSRF helper
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // Close modals on ESC
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape"){
+        closeLikes();
+        closeEdit();
+        closeAnyFocusedPost();
+      }
+    });
+  </script>
+</body>
+</html>

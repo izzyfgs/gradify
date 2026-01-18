@@ -14,17 +14,17 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic.base import RedirectView   # ← Important import!
-from core import views # Replace 'my_app_name' with your actual app name
+from django.conf import settings
+from django.conf.urls.static import static   # ← This import is CRITICAL
 
 urlpatterns = [
-    # Redirect root (/) → register page (using the named URL)
-    path('', RedirectView.as_view(pattern_name='register', permanent=False)),
-
     path('admin/', admin.site.urls),
-
-    # Include your core app URLs (this makes /register/, /login/, etc. work)
-    path('', include('core.urls')),  # ← '' means no prefix — all core paths at root level
+    path('', include('core.urls')),
 ]
+
+# This serves media files during development ONLY
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

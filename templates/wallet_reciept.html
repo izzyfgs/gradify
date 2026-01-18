@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Receipt</title>
+  <style>
+    body{margin:0;font-family:Segoe UI,system-ui;background:#fff;padding:16px;}
+    .card{border:1px solid #e2e8f0;border-radius:18px;padding:14px;}
+    .title{font-weight:950;font-size:18px;}
+    .code{margin-top:10px;font-size:22px;font-weight:950;letter-spacing:2px;color:#6d28d9;}
+    .small{font-size:13px;font-weight:800;color:#64748b;margin-top:6px;}
+    a{display:inline-block;margin-top:12px;text-decoration:none;font-weight:950;color:#6d28d9;}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">Transfer Successful ✅</div>
+    <div class="small"><b>From:</b> {{ tx.sender.username }}</div>
+    <div class="small"><b>To:</b> {{ tx.receiver.username }}</div>
+    <div class="small"><b>Amount:</b> ${{ tx.amount }}</div>
+    <div class="small"><b>Remark:</b> {{ tx.remark }}</div>
+    <div class="small"><b>Date:</b> {{ tx.created_at|date:"M d, Y H:i" }}</div>
+
+    <div class="small" style="margin-top:10px;">Receipt Code:</div>
+    <div class="code">{{ tx.code }}</div>
+
+    <a href="{% url 'wallet' %}">Back to Wallet</a>
+  </div>
+</body>
+</html>

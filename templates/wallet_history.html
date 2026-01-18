@@ -1,0 +1,237 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Activity | Gradify</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-grad: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --success-bg: #ecfdf5;
+      --success-text: #059669;
+      --border: #f1f5f9;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body { 
+      margin: 0; 
+      font-family: 'Plus Jakarta Sans', sans-serif; 
+      background: var(--bg); 
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* GLASSNAV */
+    .nav {
+      position: sticky;
+      top: 0;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .back-link {
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: var(--surface);
+      border-radius: 12px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin: 0;
+    }
+
+    /* TRANSACTION CARD STYLE */
+    .tx-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tx-card {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .tx-card:active {
+      transform: scale(0.98);
+      background: var(--surface);
+    }
+
+    /* ICON DESIGN */
+    .tx-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-right: 16px;
+      flex-shrink: 0;
+    }
+
+    .icon-in { background: #f0fdf4; color: #10b981; }
+    .icon-out { background: #f1f5f9; color: #64748b; }
+
+    /* CONTENT DETAILS */
+    .tx-details { flex: 1; }
+
+    .tx-user {
+      font-weight: 700;
+      font-size: 16px;
+      margin: 0 0 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .at-symbol { color: #8b5cf6; opacity: 0.8; }
+
+    .tx-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .status-pill {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    .id-pill {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+
+    /* AMOUNT & DATE */
+    .tx-right {
+      text-align: right;
+    }
+
+    .tx-amount {
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: -0.5px;
+    }
+
+    .amt-in { color: #10b981; }
+    .amt-out { color: var(--text-main); }
+
+    .tx-date {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="/wallet/" class="back-link">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+      Wallet
+    </a>
+    <div style="font-weight: 800; font-size: 14px;">Activity</div>
+    <div style="width: 70px;"></div> </nav>
+
+  <div class="container">
+    <header class="page-header">
+      <h1>Activity</h1>
+    </header>
+
+    <div class="tx-list">
+      {% for t in transactions %}
+        <div class="tx-card">
+          <div class="tx-icon-wrap {% if t.sender != request.user %}icon-in{% else %}icon-out{% endif %}">
+            {% if t.sender != request.user %}
+              <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+            {% else %}
+              <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+            {% endif %}
+          </div>
+
+          <div class="tx-details">
+            <p class="tx-user">
+              {% if t.sender != request.user %}
+                From <span class="at-symbol">@</span>{{ t.sender.username }}
+              {% else %}
+                To <span class="at-symbol">@</span>{{ t.receiver.username }}
+              {% endif %}
+            </p>
+            <div class="tx-meta-row">
+              <span class="status-pill">{{ t.status|default:"Success" }}</span>
+              <span class="id-pill">#{{ t.code }}</span>
+            </div>
+          </div>
+
+          <div class="tx-right">
+            <div class="tx-amount {% if t.sender != request.user %}amt-in{% else %}amt-out{% endif %}">
+              {% if t.sender != request.user %}+{% else %}−{% endif %}${{ t.amount }}
+            </div>
+            <div class="tx-date">{{ t.created_at|date:"M d, H:i" }}</div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty-msg">No transactions to show.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+</body>
+</html>

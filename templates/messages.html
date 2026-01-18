@@ -1,0 +1,253 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Gradify | Messages</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --purple-grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --purple: #6d28d9; 
+      --ink: #0f172a; 
+      --muted: #64748b; 
+      --border: #f1f5f9; 
+      --soft: #f8fafc;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      --green: #22c55e; 
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #fff;
+      color: var(--ink);
+      padding-top: 70px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- Navigation --- */
+    .top {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.1rem; letter-spacing: -0.02em; }
+    .logo {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--purple-grad);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1.2rem;
+    }
+    .btn-dash {
+      background: var(--soft); padding: 8px 16px; border-radius: 10px;
+      font-weight: 600; font-size: 13px; text-decoration: none; color: var(--ink);
+      transition: all 0.2s; border: 1px solid var(--border);
+    }
+    .btn-dash:active { transform: scale(0.96); }
+
+    .wrap { max-width: 600px; margin: 0 auto; padding: 0 16px 40px; }
+
+    /* --- Modern Search --- */
+    .search-box { position: relative; margin: 10px 0 25px; }
+    .searchbar {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--soft); border: 1px solid var(--border);
+      border-radius: 14px; padding: 12px 16px;
+      transition: all 0.2s ease;
+    }
+    .searchbar:focus-within {
+      background: #fff; border-color: var(--purple);
+      box-shadow: 0 0 0 4px rgba(109, 40, 217, 0.05);
+    }
+    .searchbar input {
+      flex: 1; border: none; outline: none; background: transparent;
+      font-weight: 500; font-size: 15px; color: var(--ink);
+    }
+    .searchbar input::placeholder { color: var(--muted); }
+
+    .suggest {
+      position: absolute; left: 0; right: 0; top: 60px;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 14px; box-shadow: var(--shadow);
+      overflow: hidden; display: none; z-index: 200;
+    }
+    .srow {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; text-decoration: none; color: var(--ink);
+      border-bottom: 1px solid var(--border);
+    }
+    .srow:hover { background: var(--soft); }
+
+    /* --- Inbox Section --- */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-header h3 { font-weight: 800; font-size: 22px; margin: 0; letter-spacing: -0.03em; }
+
+    .inbox-card { border-radius: 20px; }
+    
+    .row {
+      display: flex; gap: 16px; align-items: center; padding: 16px 0;
+      text-decoration: none; color: var(--ink);
+      border-bottom: 1px solid var(--border);
+      transition: opacity 0.2s;
+    }
+    .row:active { opacity: 0.6; }
+    .row:last-child { border-bottom: none; }
+
+    .dp-container { position: relative; flex-shrink: 0; }
+    .dp {
+      width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
+      background: #f1f5f9; border: 1px solid rgba(0,0,0,0.03);
+    }
+    .dp img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .status-dot {
+      position: absolute; bottom: 2px; right: 2px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--green); border: 3px solid #fff;
+    }
+
+    .row-mid { flex: 1; min-width: 0; }
+    .u-name { font-weight: 700; font-size: 16px; margin-bottom: 3px; }
+    .last-msg {
+      font-weight: 400; color: var(--muted); font-size: 14px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .row-right { text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .time { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .badge {
+      background: var(--purple); color: #fff;
+      padding: 4px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 800; min-width: 20px; text-align: center;
+    }
+    
+    .empty-state {
+      padding: 60px 20px; text-align: center;
+    }
+    .empty-state div { color: var(--muted); font-weight: 500; font-size: 15px; }
+
+    /* Active Pulse for Status */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+    .status-dot { animation: pulse 2s infinite; }
+
+  </style>
+</head>
+<body>
+
+  <nav class="top">
+    <div class="brand">
+      <div class="logo">G</div>
+      <span>Messages</span>
+    </div>
+    <a class="btn-dash" href="{% url 'dashboard' %}">Dashboard</a>
+  </nav>
+
+  <main class="wrap">
+    <div class="search-box">
+        <div class="searchbar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input id="searchInput" placeholder="Search friends to chat..." autocomplete="off"/>
+        </div>
+        <div id="suggestBox" class="suggest"></div>
+    </div>
+
+    <div class="section-header">
+      <h3>Inbox</h3>
+    </div>
+
+    <div class="inbox-card">
+      {% for c in conversations %}
+        <a class="row" href="{% url 'chat_thread' c.id %}">
+          <div class="dp-container">
+            <div class="dp">
+              <img src="{% if c.other.userprofile.profile_pic %}{{ c.other.userprofile.profile_pic.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}" alt="Profile">
+            </div>
+            {% if c.is_online %}<div class="status-dot"></div>{% endif %}
+          </div>
+          
+          <div class="row-mid">
+            <div class="u-name">{{ c.other.username }}</div>
+            <div class="last-msg">
+              {% if c.last_text %}{{ c.last_text }}{% else %}Start a conversation{% endif %}
+            </div>
+          </div>
+
+          <div class="row-right">
+            <div class="time">{{ c.last_time|date:"D" }}</div>
+            {% if c.unread %}
+              <div class="badge">{{ c.unread }}</div>
+            {% endif %}
+          </div>
+        </a>
+      {% empty %}
+        <div class="empty-state">
+          <div style="font-size: 40px; margin-bottom: 10px;">💬</div>
+          <div>No conversations yet.</div>
+        </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <script>
+    const input = document.getElementById("searchInput");
+    const box = document.getElementById("suggestBox");
+    let timer = null;
+
+    function renderResults(results) {
+      if (!results.length) {
+        box.innerHTML = '<div style="padding:20px; text-align:center; font-size:14px; font-weight:600; color:var(--muted);">No users found</div>';
+      } else {
+        box.innerHTML = results.map(r => `
+          <a class="srow" href="/messages/start/${r.username}/">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; background:#f1f5f9; border: 1px solid rgba(0,0,0,0.03);">
+                <img src="${r.dp || '{% static 'default_avatar.png' %}'}" style="width:100%; height:100%; object-fit:cover;">
+              </div>
+              <div style="font-weight:700; font-size:15px; color:var(--ink);">@${r.username}</div>
+            </div>
+            <div style="color:var(--purple); font-weight:700; font-size:13px; background: rgba(109,40,217,0.06); padding: 6px 12px; border-radius:8px;">Chat</div>
+          </a>
+        `).join("");
+      }
+      box.style.display = "block";
+    }
+
+    input.addEventListener("input", () => {
+      const q = input.value.trim();
+      clearTimeout(timer);
+      if (!q) { box.style.display = "none"; return; }
+      timer = setTimeout(async () => {
+        try {
+          const res = await fetch(`{% url 'user_search_ajax' %}?q=${encodeURIComponent(q)}`);
+          const data = await res.json();
+          if (data.ok) renderResults(data.results);
+        } catch (e) { console.error("Search failed", e); }
+      }, 300);
+    });
+
+    document.addEventListener("click", (e) => { 
+      if (!box.contains(e.target) && e.target !== input) box.style.display = "none"; 
+    });
+  </script>
+</body>
+</html>

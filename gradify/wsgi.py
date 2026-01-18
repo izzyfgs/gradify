@@ -1,11 +1,8 @@
-# Your good Django code...
+import os
 from django.core.wsgi import get_wsgi_application
-application = get_wsgi_application()   # ← this sets application to Django
 
-# ... then later this overrides it completely!
-from flask import Flask
-application = Flask(__name__)          # ← now application is a Flask app!
+# Replace 'gradify.settings' with the actual name of your settings folder 
+# if it's different, but based on your file path, this is correct.
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gradify.settings')
 
-@application.route('/')                # ← and this defines the default route
-def hello_world():
-    return """ <html> ... Hello, World! ... """
+application = get_wsgi_application()

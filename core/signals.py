@@ -5,21 +5,23 @@ from .models import UserProfile
 
 
 @receiver(user_logged_in)
-def update_streak(sender, user, request, **kwargs):
-    profile, _ = UserProfile.objects.get_or_create(user=user)
-    today = timezone.localdate()
+def update_streak(sender, request, user, **kwargs):
+    # This ensures a profile exists even if it wasn't created at registration
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    
+    today = timezone.now().date()
+    
+    # Check if they already logged in today to avoid resetting/doubling streak
+    if profile.last_login_date == today:
+        return
 
-    if profile.last_login_date is None:
-        profile.streak_days = 1
+    # If they logged in yesterday, increment streak
+    yesterday = today - timezone.timedelta(days=1)
+    if profile.last_login_date == yesterday:
+        profile.streak += 1
     else:
-        diff = (today - profile.last_login_date).days
-        if diff == 0:
-            # same day login, streak stays
-            pass
-        elif diff == 1:
-            profile.streak_days += 1
-        else:
-            profile.streak_days = 0
-
+        # If they missed a day, reset streak to 1
+        profile.streak = 1
+        
     profile.last_login_date = today
     profile.save()

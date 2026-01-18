@@ -1,0 +1,186 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradify | Edit Profile</title>
+
+  <style>
+    :root{
+      --purple-grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --purple:#6d28d9;
+      --border:#e2e8f0;
+      --muted:#64748b;
+      --soft:#f8fafc;
+      --ink:#0f172a;
+      --shadow: 0 14px 35px rgba(2,6,23,0.08);
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:"Segoe UI",system-ui; background:#fff; color:var(--ink); }
+    .wrap{ max-width: 760px; margin: 0 auto; padding: 16px 14px 40px; }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:22px;
+      background:#fff;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .head{
+      padding: 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap: wrap;
+    }
+    .title{
+      font-weight: 950;
+      letter-spacing:-0.4px;
+      font-size: 18px;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      font-weight:900;
+      font-size:13px;
+      cursor:pointer;
+      text-decoration:none;
+      color:var(--ink);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .btn:hover{ border-color: var(--purple); color: var(--purple); }
+    .btn.primary{
+      border:none;
+      background: var(--purple-grad);
+      color:#fff;
+    }
+
+    .body{ padding: 14px; }
+
+    label{
+      display:block;
+      margin-top: 12px;
+      font-weight: 950;
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    input[type="file"], textarea{
+      width:100%;
+      margin-top: 8px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      font-weight: 800;
+      outline:none;
+      background:#fff;
+    }
+    textarea{ min-height: 110px; resize: vertical; }
+    textarea:focus, input:focus{
+      border-color: var(--purple);
+      box-shadow: 0 0 0 4px rgba(109,40,217,0.08);
+    }
+
+    .hint{
+      margin-top: 8px;
+      font-weight: 850;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .previews{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top: 12px;
+    }
+    .preview{
+      border:1px dashed var(--border);
+      border-radius:18px;
+      background: var(--soft);
+      padding: 10px;
+      overflow:hidden;
+      min-height: 120px;
+    }
+    .preview img{
+      width:100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 14px;
+      display:block;
+    }
+    .preview .cap{
+      margin-top: 8px;
+      font-weight: 950;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    @media (max-width: 560px){
+      .previews{ grid-template-columns: 1fr; }
+      .preview img{ height: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div class="title">Edit Profile</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a class="btn" href="{% url 'profile' request.user.username %}">Back</a>
+          <button class="btn primary" form="editForm" type="submit">Save</button>
+        </div>
+      </div>
+
+      <div class="body">
+        <form id="editForm" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="previews">
+            <div class="preview">
+              {% if profile.cover_pic %}
+                <img src="{{ profile.cover_pic.url }}" alt="Cover">
+              {% else %}
+                <img src="{% static 'default_cover.png' %}" alt="Cover">
+              {% endif %}
+              <div class="cap">Current Cover</div>
+            </div>
+
+            <div class="preview">
+              {% if profile.profile_pic %}
+                <img src="{{ profile.profile_pic.url }}" alt="Profile">
+              {% else %}
+                <img src="{% static 'default_avatar.png' %}" alt="Profile">
+              {% endif %}
+              <div class="cap">Current Profile Photo</div>
+            </div>
+          </div>
+
+          <label>Cover Photo</label>
+          <input type="file" name="cover_pic" accept="image/*" />
+          <div class="hint">Recommended: clear landscape photo.</div>
+
+          <label>Profile Photo</label>
+          <input type="file" name="profile_pic" accept="image/*" />
+          <div class="hint">Recommended: square photo.</div>
+
+          <label>Bio (max 100 characters)</label>
+          <textarea name="bio" maxlength="100" placeholder="Write a short bio...">{{ profile.bio }}</textarea>
+          <div class="hint">Keep it short and personal.</div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

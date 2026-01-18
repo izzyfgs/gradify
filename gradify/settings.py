@@ -23,11 +23,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-0ar$y*l((hx09*10jbva@)27g0wybh3hvp5rgm^@k6bc_rcu2!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
-ALLOWED_HOSTS = ["rachy.pythonanywhere.com"]
-ALLOWED_HOSTS = ['rachy.pythonanywhere.com']
+ALLOWED_HOSTS = ['127.0.0.1']
+
 
 
 
@@ -54,6 +54,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # ADD YOUR CUSTOM ONE HERE:
+    'core.middleware.LastSeenMiddleware', 
 ]
 
 ROOT_URLCONF = 'gradify.urls'
@@ -132,3 +134,9 @@ import os # Make sure 'import os' is at the top of the file, or add it here
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+LOGIN_REDIRECT_URL = 'dashboard'
+
+
