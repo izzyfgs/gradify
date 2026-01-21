@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradify | AI Update</title>
+
+  <style>
+    :root{
+      --purple-grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --purple: #6d28d9;
+      --border: #e2e8f0;
+      --muted: #64748b;
+      --ink:#0f172a;
+      --soft:#f8fafc;
+      --shadow: 0 18px 60px rgba(2,6,23,0.10);
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      background:#fff;
+      color:var(--ink);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+    }
+
+    .card{
+      width:100%;
+      max-width: 520px;
+      border:1px solid var(--border);
+      border-radius: 24px;
+      background:#fff;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .top{
+      padding: 18px 16px;
+      background: var(--purple-grad);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .logo{
+      width:40px; height:40px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.22);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 950;
+      user-select:none;
+    }
+
+    .brand{
+      font-weight: 950;
+      font-size: 18px;
+      letter-spacing: -0.4px;
+    }
+
+    .body{
+      padding: 18px 16px 20px;
+    }
+
+    .title{
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: -0.6px;
+      margin: 0;
+    }
+
+    .sub{
+      margin-top: 8px;
+      color: var(--muted);
+      font-weight: 750;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .banner{
+      margin-top: 14px;
+      padding: 14px;
+      border:1px dashed #d8b4fe;
+      background: #faf5ff;
+      border-radius: 18px;
+      font-weight: 900;
+      color: var(--purple);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .btn{
+      margin-top: 16px;
+      width:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      font-weight: 950;
+      text-decoration:none;
+      color: var(--ink);
+      background:#fff;
+      cursor:pointer;
+    }
+    .btn:hover{
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+
+    @media (max-width: 420px){
+      .title{ font-size: 20px; }
+      .sub{ font-size: 13px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="top">
+      <div class="logo">G</div>
+      <div class="brand">Gradify</div>
+    </div>
+
+    <div class="body">
+      <h1 class="title">AI Update Coming Soon 🚀</h1>
+      <p class="sub">
+        We’re improving the AI feature to make it smarter, more realistic, and more helpful for students.
+        This update will be available soon.
+      </p>
+
+      <div class="banner">
+        🔧 Update in progress — stay tuned.
+      </div>
+
+      <a href="{% url 'dashboard' %}" class="btn">Back to Dashboard</a>
+    </div>
+  </div>
+</body>
+</html>

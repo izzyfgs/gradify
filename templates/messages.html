@@ -1,4 +1,5 @@
 {% load static %}
+{% load tz %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,6 +151,52 @@
     }
     .status-dot { animation: pulse 2s infinite; }
 
+    .row-right {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    margin-left: 8px; /* Space between message and time */
+}
+
+.timestamp {
+    font-size: 10px; /* Small and professional */
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.4); /* Muted/faded color so it's not distracting */
+    white-space: nowrap; /* Prevents the date from stacking */
+    letter-spacing: 0.2px;
+    text-transform: uppercase; /* Optional: makes "MON" look cleaner than "Mon" */
+}
+
+/* Cleaned up CSS for the right side of the chat row */
+    .row-right { 
+        text-align: right; 
+        flex-shrink: 0; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: flex-end; 
+        justify-content: flex-start; /* Aligns time to the top of the row */
+        gap: 4px; 
+        min-width: 65px; /* Ensures enough space for 00:00 or DD/MM/YY */
+    }
+
+    .time-meta { 
+        font-size: 11px; /* Pro size: Small but readable */
+        font-weight: 600; 
+        color: var(--muted); /* Uses your slate grey color #64748b */
+        white-space: nowrap; 
+    }
+
+    .badge {
+      background: var(--purple); 
+      color: #fff;
+      padding: 2px 6px; 
+      border-radius: 8px;
+      font-size: 10px; 
+      font-weight: 800; 
+      min-width: 18px; 
+      text-align: center;
+    }
+
   </style>
 </head>
 <body>
@@ -192,12 +239,23 @@
             </div>
           </div>
 
-          <div class="row-right">
-            <div class="time">{{ c.last_time|date:"D" }}</div>
-            {% if c.unread %}
-              <div class="badge">{{ c.unread }}</div>
-            {% endif %}
-          </div>
+<div class="row-right">
+  {% now "Y-m-d" as today %}
+  {% now "W" as this_week %}
+
+  <div class="time-meta">
+    {% with dt=c.last_time|localtime %}
+      {% if dt|date:"Y-m-d" == today %}
+        {{ dt|date:"H:i" }}
+      {% elif dt|date:"W" == this_week %}
+        {{ dt|date:"D" }}
+      {% else %}
+        {{ dt|date:"d/m/y" }}
+      {% endif %}
+    {% endwith %}
+  </div>
+</div>
+
         </a>
       {% empty %}
         <div class="empty-state">
@@ -209,45 +267,82 @@
   </main>
 
   <script>
-    const input = document.getElementById("searchInput");
-    const box = document.getElementById("suggestBox");
-    let timer = null;
+  // 1. Capture the static URL once so JS can use it inside the loop
+  const DEFAULT_AVATAR = "{% static 'default_avatar.png' %}";
+  
+  const input = document.getElementById("searchInput");
+  const box = document.getElementById("suggestBox");
+  let timer = null;
 
-    function renderResults(results) {
-      if (!results.length) {
-        box.innerHTML = '<div style="padding:20px; text-align:center; font-size:14px; font-weight:600; color:var(--muted);">No users found</div>';
-      } else {
-        box.innerHTML = results.map(r => `
-          <a class="srow" href="/messages/start/${r.username}/">
+  /**
+   * Renders the search results into the suggestion box
+   */
+  function renderResults(results) {
+    if (!results || results.length === 0) {
+      box.innerHTML = `
+        <div style="padding:20px; text-align:center; font-size:14px; font-weight:600; color:#64748b;">
+          No users found
+        </div>`;
+    } else {
+      // Map through results and build the HTML string
+      box.innerHTML = results.map(r => {
+        // Use the profile pic from DB, or fallback to our static variable
+        const profilePic = r.dp ? r.dp : DEFAULT_AVATAR;
+        
+        return `
+          <a class="srow" href="/messages/start/${r.username}/" style="text-decoration:none; display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid #f1f5f9;">
             <div style="display:flex; align-items:center; gap:12px;">
-              <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; background:#f1f5f9; border: 1px solid rgba(0,0,0,0.03);">
-                <img src="${r.dp || '{% static 'default_avatar.png' %}'}" style="width:100%; height:100%; object-fit:cover;">
+              <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; background:#f1f5f9; border: 1px solid rgba(0,0,0,0.05);">
+                <img src="${profilePic}" style="width:100%; height:100%; object-fit:cover;">
               </div>
-              <div style="font-weight:700; font-size:15px; color:var(--ink);">@${r.username}</div>
+              <div style="font-weight:700; font-size:15px; color:#1e293b;">@${r.username}</div>
             </div>
-            <div style="color:var(--purple); font-weight:700; font-size:13px; background: rgba(109,40,217,0.06); padding: 6px 12px; border-radius:8px;">Chat</div>
+            <div style="color:#6d28d9; font-weight:700; font-size:13px; background: rgba(109,40,217,0.08); padding: 6px 12px; border-radius:8px;">
+              Chat
+            </div>
           </a>
-        `).join("");
-      }
-      box.style.display = "block";
+        `;
+      }).join("");
+    }
+    // Show the box now that it has content
+    box.style.display = "block";
+  }
+
+  /**
+   * Listen for typing with a 300ms debounce to save server resources
+   */
+  input.addEventListener("input", () => {
+    const q = input.value.trim();
+    clearTimeout(timer);
+
+    if (!q) {
+      box.style.display = "none";
+      return;
     }
 
-    input.addEventListener("input", () => {
-      const q = input.value.trim();
-      clearTimeout(timer);
-      if (!q) { box.style.display = "none"; return; }
-      timer = setTimeout(async () => {
-        try {
-          const res = await fetch(`{% url 'user_search_ajax' %}?q=${encodeURIComponent(q)}`);
-          const data = await res.json();
-          if (data.ok) renderResults(data.results);
-        } catch (e) { console.error("Search failed", e); }
-      }, 300);
-    });
+    timer = setTimeout(async () => {
+      try {
+        // Fetch from your Django view
+        const response = await fetch(`{% url 'user_search_ajax' %}?q=${encodeURIComponent(q)}`);
+        const data = await response.json();
 
-    document.addEventListener("click", (e) => { 
-      if (!box.contains(e.target) && e.target !== input) box.style.display = "none"; 
-    });
-  </script>
+        if (data.ok) {
+          renderResults(data.results);
+        }
+      } catch (e) {
+        console.error("Search failed:", e);
+      }
+    }, 300);
+  });
+
+  /**
+   * Close the suggestion box if clicking outside
+   */
+  document.addEventListener("click", (e) => {
+    if (!box.contains(e.target) && e.target !== input) {
+      box.style.display = "none";
+    }
+  });
+</script>
 </body>
 </html>

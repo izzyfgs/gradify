@@ -1,0 +1,276 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gradify | Rewards</title>
+
+  <style>
+    :root{
+      --grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --purple:#6d28d9;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --soft:#f8fafc;
+      --green:#16a34a;
+      --shadow: 0 16px 50px rgba(2,6,23,0.10);
+    }
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif; background:#fff; color:var(--ink); overflow-x:hidden; }
+
+    /* Sticky top bar (doesn't move) */
+    .topbar{
+      position: sticky;
+      top:0;
+      z-index: 50;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:950; letter-spacing:-0.4px; }
+    .logo{
+      width:38px; height:38px; border-radius:12px;
+      background: var(--grad);
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:950; user-select:none;
+      box-shadow: 0 12px 28px rgba(109,40,217,0.22);
+    }
+    .btn{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:900;
+      font-size:13px;
+      text-decoration:none;
+      color:var(--ink);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+    }
+    .btn:hover{ border-color: var(--purple); color: var(--purple); }
+    .btn.primary{
+      border:none;
+      background: var(--grad);
+      color:#fff;
+    }
+    .btn.primary:hover{ opacity:0.95; }
+
+    .wrap{ max-width: 980px; margin: 0 auto; padding: 14px 14px 40px; }
+
+    .hero{
+      border:1px solid var(--border);
+      border-radius: 22px;
+      background:#fff;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .heroTop{
+      padding: 16px 16px 14px;
+      background: linear-gradient(180deg, rgba(109,40,217,0.08), rgba(255,255,255,0));
+    }
+    .hTitle{
+      margin:0;
+      font-size: 20px;
+      font-weight: 950;
+      letter-spacing:-0.6px;
+    }
+    .hSub{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .metrics{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:10px;
+      padding: 0 16px 16px;
+    }
+    .metric{
+      border:1px solid var(--border);
+      border-radius: 18px;
+      padding: 12px;
+      background:#fff;
+    }
+    .metric .label{
+      font-weight: 900;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .metric .val{
+      margin-top: 6px;
+      font-weight: 950;
+      font-size: 20px;
+      color: var(--ink);
+    }
+    .metric .money{
+      color: var(--purple);
+    }
+
+    .grid{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+    }
+    .card{
+      border:1px solid var(--border);
+      border-radius: 22px;
+      background:#fff;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      overflow:hidden;
+    }
+    .row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .title{
+      font-weight: 950;
+      font-size: 14px;
+      margin:0;
+      letter-spacing:-0.3px;
+      line-height:1.2;
+    }
+    .sub{
+      margin-top: 6px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 12px;
+      line-height: 1.3;
+    }
+    .pill{
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 950;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: var(--soft);
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .pill.ok{
+      border-color: rgba(22,163,74,0.25);
+      background: rgba(22,163,74,0.10);
+      color: var(--green);
+    }
+    .amount{
+      margin-top: 10px;
+      font-weight: 950;
+      font-size: 22px;
+      color: var(--purple);
+    }
+    .actions{
+      margin-top: 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+    }
+
+    .note{
+      margin-top: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: var(--soft);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 720px){
+      .metrics{ grid-template-columns: 1fr; }
+      .grid{ grid-template-columns: 1fr; }
+      .hTitle{ font-size: 18px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">G</div>
+      <div>Rewards</div>
+    </div>
+    <a class="btn" href="{% url 'wallet' %}">Wallet</a>
+  </div>
+
+  <div class="wrap">
+    <section class="hero">
+      <div class="heroTop">
+        <h1 class="hTitle">Earn money for consistency 💜</h1>
+        <p class="hSub">Claim rewards when you hit milestones. Rewards go straight into your wallet and show in history.</p>
+      </div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="label">Wallet Balance</div>
+          <div class="val money">${{ wallet_balance }}</div>
+        </div>
+        <div class="metric">
+          <div class="label">Total Sessions</div>
+          <div class="val">{{ total_sessions }}</div>
+        </div>
+        <div class="metric">
+          <div class="label">Study Streak</div>
+          <div class="val">{{ streak_days }} days</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="note">
+      ✅ Rules: each reward can be claimed once. If you hit 10 sessions you get $25, 20 sessions another $25, etc. Same for streak bonuses.
+    </div>
+
+    <section class="grid">
+      {% for r in rewards %}
+        <div class="card">
+          <div class="row">
+            <div>
+              <p class="title">{{ r.title }}</p>
+              <div class="sub">{{ r.subtitle }}</div>
+            </div>
+            {% if r.claimed %}
+              <div class="pill ok">Claimed</div>
+            {% else %}
+              <div class="pill">Available</div>
+            {% endif %}
+          </div>
+
+          <div class="amount">+${{ r.amount }}</div>
+
+          <div class="actions">
+            {% if r.claimable %}
+              <form method="post" action="{% url 'claim_reward' %}">
+                {% csrf_token %}
+                <input type="hidden" name="reward_type" value="{{ r.type }}">
+                <input type="hidden" name="milestone" value="{{ r.milestone }}">
+                <input type="hidden" name="amount" value="{{ r.amount }}">
+                <button class="btn primary" type="submit">Claim reward</button>
+              </form>
+            {% else %}
+              <button class="btn" type="button" disabled style="opacity:0.6; cursor:not-allowed;">Already claimed</button>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </section>
+  </div>
+</body>
+</html>

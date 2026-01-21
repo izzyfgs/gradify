@@ -1,0 +1,262 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Gradify | Create Account</title>
+
+  <style>
+    :root {
+      --bg: #07090e;
+      --card: #111827;
+      --accent: #6366f1;
+      --text: #ffffff;
+      --muted: #9ca3af;
+      --input-bg: #1f2937;
+      --error: #ef4444;
+    }
+
+    /* Prevent scrolling and fix viewport */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; 
+      background-color: var(--bg);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    body {
+      background-image: radial-gradient(circle at top, rgba(99, 102, 241, 0.12), transparent);
+    }
+
+    /* Brand Section */
+    .brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 28px;
+      color: white;
+      margin: 0 auto 12px;
+      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+    }
+
+    .brand h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 0;
+      color: var(--text);
+    }
+
+    /* Auth Card */
+    .card {
+      width: 92%;
+      max-width: 400px;
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      box-sizing: border-box; /* Critical for preventing overflow */
+    }
+
+    .card h2 {
+      font-size: 16px;
+      text-align: center;
+      margin: 0 0 24px 0;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Row Fix: minmax(0, 1fr) ensures the last name never overlaps the div */
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      width: 100%;
+    }
+
+    .group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0; /* Allows grid items to shrink properly */
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      padding-left: 4px;
+    }
+
+    input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: white;
+      font-size: 16px; /* 16px font prevents iOS auto-zoom */
+      outline: none;
+      box-sizing: border-box; /* Forces padding to stay inside width */
+      transition: all 0.2s ease;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      background: #1a222f;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 16px;
+      margin-top: 8px;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    /* Error Toast (Native Mobile Feel) */
+    #toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--error);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 999;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast"></div>
+
+  <div class="brand">
+    <div class="logo">G</div>
+    <h1>Gradify</h1>
+  </div>
+
+  <div class="card">
+    <h2>Start your journey</h2>
+
+    <form id="regForm" method="POST" action="{% url 'register' %}">
+      {% csrf_token %}
+      
+      <div class="row">
+        <div class="group">
+          <label>First Name</label>
+          <input type="text" name="first_name" placeholder="First" required>
+        </div>
+        <div class="group">
+          <label>Last Name</label>
+          <input type="text" name="last_name" placeholder="Last" required>
+        </div>
+      </div>
+
+      <div class="group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Choose username" required>
+      </div>
+
+      <div class="group">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="name@email.com" required>
+      </div>
+
+      <div class="group">
+        <label>Password</label>
+        <input type="password" id="pw" name="password" placeholder="Min. 8 characters" required>
+      </div>
+
+      <button type="submit" class="btn">Create Account</button>
+    </form>
+
+    <div class="footer">
+      Already have an account? <a href="{% url 'login' %}">Log in</a>
+    </div>
+  </div>
+
+  <script>
+    const toast = document.getElementById('toast');
+    const form = document.getElementById('regForm');
+
+    function notify(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+
+    form.addEventListener('submit', (e) => {
+      const pw = document.getElementById('pw').value;
+      if (pw.length < 8) {
+        e.preventDefault();
+        notify("Password must be 8+ characters");
+      }
+    });
+
+    // Capture Django Backend Errors (like Username taken)
+    {% if messages %}
+      {% for message in messages %}
+        notify("{{ message }}");
+      {% endfor %}
+    {% endif %}
+  </script>
+</body>
+</html>

@@ -10,12 +10,12 @@
     :root{
       --purple-grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
       --purple: #6d28d9;
-      --ink: #0f172a;
       --border: #e2e8f0;
       --muted: #64748b;
-      --soft: #f8fafc;
       --card-border: #f1f5f9;
       --danger: #ef4444;
+      --soft: #f8fafc;
+      --ink: #0f172a;
       --shadow: 0 14px 35px rgba(2,6,23,0.08);
     }
 
@@ -23,337 +23,265 @@
     html, body{
       margin:0; padding:0; height:100%;
       font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-      background:#ffffff; color:var(--ink);
+      background:#fff; color:var(--ink);
       overflow-x:hidden;
     }
 
-    /* ===== APP LAYOUT ===== */
-    .app{ display:flex; min-height:100vh; width:100%; }
-
-    /* ===== TOPBAR (FIXED ON MOBILE) ===== */
+    /* ===== FIXED TOP BAR (ALWAYS FIXED) ===== */
     .topbar{
-      display:none;
       position: fixed;
       top:0; left:0; right:0;
-      z-index: 1400;
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(10px);
+      z-index: 1500;
+      height: 62px;
+      background:#fff;
       border-bottom: 1px solid var(--border);
-      padding: 10px 12px;
+      display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
+      padding: 10px 14px;
     }
 
-    .topbar-left{
+    .top-left{
       display:flex;
       align-items:center;
       gap:10px;
       min-width:0;
     }
 
-    .hamburger{
-      width:42px; height:42px;
+    .menu-btn{
+      width:42px;
+      height:42px;
+      border-radius:14px;
       border:1px solid var(--border);
       background:#fff;
-      border-radius:14px;
+      cursor:pointer;
+      font-weight:950;
+      font-size:18px;
       display:flex;
       align-items:center;
       justify-content:center;
-      font-weight:950;
-      cursor:pointer;
       user-select:none;
     }
-    .hamburger:active{ transform: scale(0.98); }
+    .menu-btn:hover{ border-color: var(--purple); }
 
     .brand{
-      display:flex; align-items:center; gap:10px;
+      display:flex;
+      align-items:center;
+      gap:10px;
       font-weight:950;
-      letter-spacing:-0.5px;
-      white-space:nowrap;
-      user-select:none;
+      letter-spacing:-0.4px;
+      min-width:0;
     }
     .brand .logo-icon{
-      width:38px; height:38px;
-      border-radius:12px;
+      width:40px; height:40px;
+      border-radius:14px;
       background: var(--purple-grad);
       display:flex; align-items:center; justify-content:center;
-      color:#fff; font-weight:950;
-      font-size:18px;
-      box-shadow: 0 10px 25px rgba(109,40,217,0.18);
+      color:#fff; font-weight:950; font-size:18px;
+      box-shadow: 0 12px 25px rgba(109,40,217,0.20);
+      user-select:none;
+      flex-shrink:0;
     }
-    .brand .logo-text{
-      font-size:16px;
+    .brand .brand-text{
+      font-size:18px;
       font-weight:950;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
-    .topbar-right{
+    .top-actions{
       display:flex;
       align-items:center;
       gap:10px;
       flex-shrink:0;
     }
 
-    /* ===== SMALL SEARCH (NO PLACEHOLDER) ===== */
-    .search-wrap{
-      position:relative;
-      width: 180px;
-      max-width: 45vw;
-    }
-    .search-input{
-      width:100%;
+    /* BLACK SEARCH ICON */
+    .icon-link{
+      width:42px;
       height:42px;
       border-radius:14px;
       border:1px solid var(--border);
-      outline:none;
-      padding: 0 12px;
-      font-weight:850;
-      font-size:13px;
-      background:#fff;
-    }
-    .search-input:focus{
-      border-color: var(--purple);
-      box-shadow: 0 0 0 4px rgba(109,40,217,0.08);
-    }
-
-    .search-dd{
-      position:absolute;
-      top: 46px;
-      left:0;
-      right:0;
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:14px;
-      box-shadow: 0 18px 55px rgba(2,6,23,0.14);
-      overflow:hidden;
-      display:none;
-      z-index: 1600;
-      max-height: 280px;
-      overflow:auto;
-    }
-    .search-dd.show{ display:block; }
-
-    .search-item{
-      padding: 10px 12px;
-      font-weight:900;
-      font-size:13px;
-      cursor:pointer;
-      display:flex;
-      gap:10px;
-      align-items:center;
-    }
-    .search-item:hover{ background: var(--soft); }
-    .search-item .pill{
-      font-weight:950;
-      color: var(--purple);
-    }
-
-    /* ===== NOTIFICATION BELL ===== */
-    .bell{
-      width:42px; height:42px;
-      border-radius:14px;
-      border:1px solid var(--border);
       background:#fff;
       display:flex;
       align-items:center;
       justify-content:center;
-      cursor:pointer;
-      position:relative;
+      text-decoration:none;
+      transition: 0.2s ease;
       user-select:none;
     }
-    .bell svg{ width:18px; height:18px; }
-    .badge{
-      position:absolute;
-      top:-6px; right:-6px;
-      min-width: 18px;
-      height:18px;
-      padding: 0 5px;
-      border-radius: 999px;
-      background: var(--danger);
-      color:#fff;
-      font-size:11px;
-      font-weight:950;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border:2px solid #fff;
+    .icon-link:hover{
+      border-color: var(--purple);
+      transform: translateY(-1px);
     }
 
-    /* ===== OVERLAY (MOBILE DRAWER) ===== */
+    /* reserve space for fixed topbar */
+    body{ padding-top: 62px; }
+
+    .app{ display:flex; min-height: calc(100vh - 62px); width:100%; }
+
+    /* ===== OVERLAY ===== */
     .overlay{
       display:none;
       position:fixed;
       inset:0;
-      background: rgba(2,6,23,0.38);
-      z-index: 1300;
+      background: rgba(0,0,0,0.38);
+      z-index: 1400;
     }
     .overlay.show{ display:block; }
 
-    /* ===== SIDEBAR ===== */
+    /* ===== SIDEBAR (DESKTOP FIXED) ===== */
     .sidebar{
       width:320px;
-      height:100vh;
+      height: calc(100vh - 62px);
       background:#fff;
-      border-right:1px solid var(--border);
-      display:flex;
-      flex-direction:column;
-      padding: 22px;
       position:fixed;
-      left:0; top:0;
-      z-index: 1350;
+      top:62px; left:0;
+      z-index: 1450;
+      padding:18px 18px 18px;
       overflow-y:auto;
       overflow-x:hidden;
+      border-right: 1px solid var(--border);
       transition: transform .25s ease;
-      -ms-overflow-style: none;     /* IE/Edge */
-      scrollbar-width: none;        /* Firefox */
-    }
-    .sidebar::-webkit-scrollbar{ width:0; height:0; } /* Chrome/Safari => removes the vertical line */
-
-    .logo-container{
-      display:flex; align-items:center; gap:12px;
-      margin-bottom:18px;
-    }
-    .logo-container .logo-icon{
-      width:48px; height:48px;
-      background: var(--purple-grad);
-      border-radius:16px;
-      display:flex; align-items:center; justify-content:center;
-      color:#fff; font-weight:950; font-size:22px;
-      box-shadow: 0 14px 30px rgba(109,40,217,0.20);
-      user-select:none;
-    }
-    .logo-container .logo-text{
-      font-size:26px;
-      font-weight:950;
-      letter-spacing:-0.6px;
-      line-height:1;
     }
 
-    /* Profile mini card */
+    /* hide ugly scrollbar line */
+    .sidebar::-webkit-scrollbar{ width: 0; height:0; }
+    .sidebar{ scrollbar-width:none; }
+
+    /* ===== PROFILE MINI CARD ===== */
     .profile-card{
       display:flex;
       align-items:center;
       gap:12px;
       background:#fbfbff;
-      padding:14px;
-      border-radius:20px;
       border:1px solid #e9d5ff;
-      position:relative;
-      margin-bottom:16px;
+      border-radius:20px;
+      padding:14px;
       box-shadow: 0 12px 28px rgba(109,40,217,0.08);
+      position:relative;
+      margin-bottom: 14px;
     }
 
-    .avatar-upload{
-      width:52px; height:52px;
+    .avatar-wrap{
+      width:56px; height:56px;
       border-radius:50%;
-      border:2px solid var(--border);
-      background:#f1f5f9;
-      padding:0;
-      position:relative;
       overflow:hidden;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      border:2px solid var(--border);
+      background:#e2e8f0;
       flex-shrink:0;
+      position:relative;
+      cursor:pointer;
+      user-select:none;
     }
-    .avatar-upload img{
-      width:100%;
-      height:100%;
+    .avatar-wrap img{
+      width:100%; height:100%;
       object-fit:cover;
       display:block;
     }
     .avatar-overlay{
       position:absolute;
       inset:0;
+      background: rgba(0,0,0,0.35);
       display:flex;
       align-items:center;
       justify-content:center;
+      opacity:0;
+      transition: 0.2s ease;
+    }
+    .avatar-wrap:hover .avatar-overlay{ opacity:1; }
+    .avatar-overlay span{
+      color:#fff;
       font-size:22px;
       font-weight:950;
-      color:#fff;
-      background: rgba(2,6,23,0.35);
-      opacity:0;
-      transition: .2s ease;
-      pointer-events:none;
     }
-    .avatar-upload:hover .avatar-overlay{ opacity:1; }
 
     .user-info{
       flex:1;
       min-width:0;
     }
     .user-info .username{
+      display:block;
       font-weight:950;
       font-size:14px;
-      display:block;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
     .user-info .avg-text{
-      font-size:12px;
-      color:var(--muted);
-      font-weight:850;
+      display:block;
       margin-top:2px;
+      font-size:12px;
+      font-weight:850;
+      color: var(--muted);
     }
 
-    .three-dots{
+    .dots{
+      width:40px; height:40px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       cursor:pointer;
-      font-size:20px;
-      padding:8px 10px;
-      border-radius:12px;
+      font-weight:950;
       user-select:none;
-      line-height:1;
       flex-shrink:0;
     }
-    .three-dots:hover{ background:#f1f5f9; }
+    .dots:hover{ border-color: var(--purple); }
 
-    .dropdown-menu{
+    .dropdown{
       position:absolute;
-      right:12px;
-      top:64px;
-      background:#fff;
-      border:1px solid var(--border);
+      right:14px;
+      top:74px;
+      width:190px;
       border-radius:14px;
-      box-shadow: 0 18px 55px rgba(2,6,23,0.18);
+      border:1px solid var(--border);
+      background:#fff;
+      box-shadow: 0 18px 60px rgba(2,6,23,0.16);
+      overflow:hidden;
       display:none;
       z-index: 2000;
-      min-width:170px;
-      overflow:hidden;
     }
-    .dropdown-menu.show{ display:block; }
-    .dropdown-menu a{
-      display:block;
-      padding:12px 14px;
-      text-decoration:none;
-      color:var(--ink);
+    .dropdown.show{ display:block; }
+    .dropdown a, .dropdown button{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:10px;
+      padding: 12px 14px;
+      font-weight:900;
       font-size:13px;
-      font-weight:950;
+      border:none;
+      background:#fff;
       cursor:pointer;
+      text-decoration:none;
+      color: var(--ink);
     }
-    .dropdown-menu a:hover{ background: var(--soft); }
+    .dropdown a:hover, .dropdown button:hover{ background: var(--soft); }
+    .dropdown .danger{ color: var(--danger); }
 
-    .menu-section{ margin-top:10px; }
+    /* ===== SECTIONS ===== */
+    .menu-section{ margin-top: 10px; }
     .section-trigger{
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      padding:10px 8px;
+      justify-content:space-between;
+      padding: 12px 10px;
       font-weight:950;
-      font-size:12px;
-      color: var(--muted);
+      font-size:13px;
+      cursor:pointer;
       user-select:none;
-      text-transform:uppercase;
-      letter-spacing: 0.8px;
+      border-radius:12px;
     }
+    .section-trigger:hover{ background: var(--soft); }
+    .arrow{ font-weight:950; color: var(--ink); }
 
-    .nav-list{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      margin-top:6px;
-    }
+    .section-content{ display:none; }
+    .section-content.open{ display:block; }
 
     .nav-item{
       display:flex;
@@ -365,240 +293,313 @@
       color: var(--ink);
       font-weight:950;
       font-size:14px;
-      transition: all .2s ease;
+      transition: 0.2s ease;
       border-left: 4px solid transparent;
     }
     .nav-item:hover{
       background: var(--soft);
-      border-left-color: var(--purple);
+      border-left: 4px solid var(--purple);
       color: var(--purple);
       padding-left: 16px;
     }
-    .nav-item svg{
-      width:18px; height:18px;
-      flex-shrink:0;
-      fill: currentColor;
-      opacity: 0.95;
-    }
 
-    .nav-item.logout{
+    .nav-icon{ width:18px; height:18px; fill:#111; flex-shrink:0; }
+    .nav-item:hover .nav-icon{ fill: var(--purple); }
+
+    .logout{ color: var(--danger); }
+    .logout .nav-icon{ fill: var(--danger); }
+    .logout:hover{
+      background: rgba(239,68,68,0.10);
+      border-left: 4px solid var(--danger);
       color: var(--danger);
     }
-    .nav-item.logout:hover{
-      background: rgba(239,68,68,0.10);
-      border-left-color: var(--danger);
-      color: var(--danger);
+    .logout:hover .nav-icon{ fill: var(--danger); }
+
+    /* Notification badge inside sidebar */
+    .bell-badge{
+      margin-left:auto;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--danger);
+      color:#fff;
+      font-size:12px;
+      font-weight:950;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 0 7px;
     }
 
     /* ===== MAIN BODY ===== */
     .main-body{
       flex:1;
       margin-left:320px;
+      padding: 18px 18px 30px;
+      min-height: calc(100vh - 62px);
       background:#fff;
-      padding: 34px 48px 48px;
-      min-height:100vh;
     }
 
-    .welcome-text{
-      font-size:40px;
-      font-weight:950;
-      margin:0;
-      letter-spacing:-1px;
-      line-height:1.1;
+    .welcome{
+      background:#fff;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 16px;
     }
-    .welcome-text .uname{
+
+    .welcome h1{
+      margin:0;
+      font-size:26px;
+      font-weight:950;
+      letter-spacing:-0.6px;
+      line-height:1.15;
+    }
+    .uname{
       background: var(--purple-grad);
       -webkit-background-clip:text;
       background-clip:text;
-      color:transparent;
-      font-weight:950;
+      color: transparent;
+      font-weight: 950;
     }
-
-    .motivation-line{
-      margin-top:10px;
-      font-size:14px;
-      color:#475569;
-      font-weight:750;
-      border-top:1px solid rgba(2,6,23,0.06);
-      padding-top:10px;
-      display:block;
-      max-width:780px;
+    .welcome p{
+      margin:10px 0 0;
+      color: var(--muted);
+      font-weight:800;
+      font-size:13px;
+      line-height:1.45;
+      border-top: 1px solid rgba(15,23,42,0.06);
+      padding-top: 10px;
     }
 
     .stats-grid{
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap:16px;
-      margin-top:22px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:14px;
+      margin-top: 14px;
     }
 
     .stat-card{
-      background:#fff;
-      padding: 20px;
+      border:1px solid var(--border);
       border-radius:22px;
-      border:2px solid var(--card-border);
-      box-shadow: 0 6px 20px rgba(2,6,23,0.03);
-      transition: all .25s ease;
-    }
-    .stat-card:hover{
-      transform: translateY(-4px);
-      border-color: var(--purple);
-      box-shadow: 0 16px 28px rgba(109,40,217,0.10);
+      background:#fff;
+      box-shadow: var(--shadow);
+      padding: 16px;
     }
     .stat-label{
-      color:#111827;
       font-weight:950;
       font-size:12px;
-      margin-bottom:10px;
-      text-transform:uppercase;
-      letter-spacing:0.8px;
+      color: var(--muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
     }
     .stat-value{
-      display:block;
-      font-size:46px;
+      margin-top: 10px;
+      font-size: 42px;
       font-weight:950;
       color: var(--purple);
-      line-height:1;
+      line-height: 1;
+      display:block;
     }
     .stat-sub{
-      margin-top:10px;
-      font-size:13px;
-      font-weight:850;
-      color:var(--muted);
+      margin-top: 10px;
+      color: var(--muted);
+      font-weight:900;
+      font-size: 12px;
     }
 
-    .subject-section{ margin-top:24px; }
+    .best-val{
+      font-size:22px !important;
+      color: var(--ink) !important;
+      font-weight: 950;
+    }
+
+    .subject-section{
+      margin-top: 14px;
+      border:1px solid var(--border);
+      border-radius:22px;
+      background:#fff;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
     .subject-title{
-      font-weight:950;
-      font-size:20px;
       margin:0;
+      font-weight:950;
+      font-size:16px;
       letter-spacing:-0.4px;
     }
     .subject-grid{
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap:12px;
-      margin-top:12px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap:10px;
+      margin-top: 12px;
     }
     .subject-card{
-      background:#fcfcfc;
-      padding:16px;
+      border:1px solid var(--card-border);
       border-radius:18px;
-      border:2px solid var(--card-border);
-      font-weight:950;
+      background:#fbfbff;
+      padding: 14px;
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      transition: all .2s ease;
+      justify-content:space-between;
+      font-weight:950;
+      transition: 0.2s ease;
     }
     .subject-card:hover{
       border-color: var(--purple);
-      background:#fdfcff;
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
-    .subject-card .pct{ color: var(--purple); }
+    .pct{ color: var(--purple); }
 
-    .empty-subjects{
-      margin-top:12px;
-      padding:16px;
+    .empty{
+      margin-top: 12px;
+      padding: 14px;
       border-radius:18px;
-      border:1px dashed #dbeafe;
+      border:1px dashed #cbd5e1;
       background: var(--soft);
-      color:#334155;
+      color: var(--muted);
       font-weight:900;
     }
 
     /* ===== MOBILE ===== */
     @media (max-width: 920px){
-      .topbar{ display:flex; }
-      body{ padding-top: 60px; }
-
       .sidebar{
         transform: translateX(-110%);
         width: 86%;
         max-width: 340px;
+        border-right: none; /* remove that “vertical line” look */
         box-shadow: 0 18px 60px rgba(0,0,0,0.25);
       }
       .sidebar.open{ transform: translateX(0); }
-
       .main-body{
         margin-left:0;
-        padding: 18px 14px 36px;
       }
-      .logo-container{ display:none; } /* topbar already shows brand */
-      .welcome-text{ font-size: 28px; }
-      .stat-value{ font-size: 40px; }
-      .search-wrap{ width: 155px; }
     }
 
     @media (max-width: 420px){
-      .search-wrap{ width: 130px; }
-      .brand .logo-text{ display:none; } /* keep tight on tiny screens */
+      .welcome h1{ font-size: 22px; }
+      .stat-value{ font-size: 38px; }
     }
+
+
+
+/* Desktop: hide hamburger + overlay, keep sidebar open */
+@media (min-width: 921px){
+  #menuBtn{ display:none !important; }
+  .overlay{ display:none !important; }
+  .sidebar{ transform:none !important; }
+}
+
+
+  
+
+  /* ✅ Small mobile tweaks */
+  @media (max-width: 420px){
+    .stat-value{ font-size:52px; }
+    .stat-value.best{ font-size:28px; }
+  }
+
+  
+/* ✅ BIG BLACK numbers */
+.black-big{
+  font-size:64px;
+  font-weight:950;
+  color:#6d28d9;
+  line-height:1;
+}
+
+/* ✅ Best subject still big, but the SUBJECT TEXT becomes gradient */
+.best-subject{
+  font-size:36px;
+  text-transform:uppercase;
+}
+
+/* ✅ Purple gradient only on the text (MATHEMATICS etc) */
+.best-gradient{
+  background: var(--purple-grad);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  font-weight:950;
+}
+
+/* ✅ Mobile responsiveness */
+@media (max-width: 920px){
+  .black-big{ font-size:52px; }
+  .best-subject{ font-size:34px; }
+}
+
+@media (max-width: 420px){
+  .black-big{ font-size:48px; }
+  .best-subject{ font-size:30px; }
+}
+
+
+.notif-badge{
+  margin-left:auto;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-weight: 950;
+  font-size: 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+</style>
   </style>
 </head>
 
 <body>
 
-  <!-- MOBILE TOPBAR -->
+  <!-- TOPBAR (FIXED) -->
   <div class="topbar">
-    <div class="topbar-left">
-      <!-- HAMBURGER LEFT ✅ -->
-      <div class="hamburger" id="menuBtn" aria-label="Open menu">☰</div>
+    <div class="top-left">
+      <!-- ☰ MUST BE LEFT -->
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="Open sidebar">☰</button>
 
       <div class="brand">
         <div class="logo-icon">G</div>
-        <div class="logo-text">Gradify</div>
+        <div class="brand-text">Gradify</div>
       </div>
     </div>
 
-    <div class="topbar-right">
-      <!-- Small search (no placeholder) -->
-      <div class="search-wrap">
-        <input class="search-input" id="userSearch" type="text" autocomplete="off" />
-        <div class="search-dd" id="searchDD"></div>
-      </div>
-
-      <!-- Bell -->
-      <div class="bell" id="bellBtn" title="Notifications">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 7h18s-3 0-3-7"/>
-          <path d="M13.73 21a2 2 0 01-3.46 0"/>
+    <div class="top-actions">
+      <!-- 🔍 BLACK SEARCH ICON -->
+      <a class="icon-link" href="{% url 'search' %}" aria-label="Search users" title="Search">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="#000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-
-        {% if notif_count and notif_count|add:0 > 0 %}
-          <div class="badge">{{ notif_count }}</div>
-        {% endif %}
-      </div>
+      </a>
     </div>
   </div>
 
-  <!-- OVERLAY -->
+  <!-- overlay -->
   <div class="overlay" id="overlay"></div>
 
   <div class="app">
 
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
-      <div class="logo-container">
-        <div class="logo-icon">G</div>
-        <div class="logo-text">Gradify</div>
-      </div>
 
-      <!-- Profile mini card (DB avatar upload + preview + auto submit) -->
+      <!-- Profile mini card -->
       <div class="profile-card">
 
-        <form id="dashAvatarForm" method="post" action="{% url 'dashboard_avatar_upload' %}" enctype="multipart/form-data" style="margin:0;">
+        <form id="dashAvatarForm" method="post" action="{% url 'edit_profile' %}" enctype="multipart/form-data" style="margin:0;">
           {% csrf_token %}
 
-          <button type="button" class="avatar-upload" id="avatarBtn" title="Change profile picture">
-            <img
-              id="dashAvatarImg"
-              src="{% if request.user.userprofile.profile_pic %}{{ request.user.userprofile.profile_pic.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}"
-              alt="Avatar"
-            />
-            <span class="avatar-overlay" id="avatarOverlay">+</span>
-          </button>
+          <div class="avatar-wrap" id="avatarBtn" title="Change profile picture">
+            <img id="dashAvatarImg"
+                 src="{% if request.user.userprofile.profile_pic %}{{ request.user.userprofile.profile_pic.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}"
+                 alt="Avatar">
+            <div class="avatar-overlay"><span>+</span></div>
+          </div>
 
           <input type="file" name="profile_pic" id="dashFileInput" hidden accept="image/*" />
         </form>
@@ -608,67 +609,85 @@
           <span class="avg-text">Average: {{ avg_percent|default:0 }}%</span>
         </div>
 
-        <div class="three-dots" id="dotsBtn">⋮</div>
-        <div class="dropdown-menu" id="profileDropdown">
-          <a href="javascript:void(0)" id="editBtn">Edit Avatar</a>
+        <div class="dots" id="dotsBtn" aria-label="Profile menu">⋮</div>
+
+        <div class="dropdown" id="profileDropdown">
+          <a href="{% url 'profile' request.user.username %}">View Profile</a>
+          <a href="{% url 'edit_profile' %}">Edit Profile</a>
+
+          <!-- If you already have a delete avatar route, keep it. If not, remove this form line. -->
+          <form method="post" action="#" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="danger">Delete Avatar</button>
+          </form>
         </div>
       </div>
 
-      <!-- MAIN MENU -->
+      <!-- MAIN MENU (collapsible) -->
       <div class="menu-section">
-        <div class="section-trigger">Main Menu</div>
-        <div class="nav-list">
+        <div class="section-trigger" data-target="mainMenu">
+          Main Menu <span class="arrow" id="arrowMain">▾</span>
+        </div>
+
+        <div id="mainMenu" class="section-content open">
 
           <a href="{% url 'profile' request.user.username %}" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M12 12c2.76 0 5-2.24 5-5S14.76 2 12 2 7 4.24 7 7s2.24 5 5 5zm0 2c-4.33 0-8 2.17-8 5v3h16v-3c0-2.83-3.67-5-8-5z"/></svg>
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2-8 4.5V21h16v-2.5c0-2.5-3.58-4.5-8-4.5Z"/></svg>
             Profile
           </a>
 
           <a href="{% url 'messages_inbox' %}" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 3 4-3h4c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/></svg>
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v-3h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 11H8.83L6 17.83V6h14Z"/></svg>
             Messages
           </a>
 
           <a href="{% url 'wallet' %}" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M21 7H3V5h16l2 2zm0 2v10c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V9h20zm-5 6a2 2 0 100-4 2 2 0 000 4z"/></svg>
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 7H3a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Zm0 10H3V9h18Zm-4-3a1 1 0 1 1-1-1 1 1 0 0 1 1 1Z"/></svg>
             Wallet
           </a>
 
+        
+</a>
+
+
           <a href="#" class="nav-item" id="addNewBtn">
-            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
             Add New
           </a>
 
           <a href="{% url 'view_scores' %}" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2Zm-5 14H7v-2h7v2Zm3-4H7v-2h10v2Zm0-4H7V7h10v2z"/></svg>
             View Scores
           </a>
 
         </div>
       </div>
 
-      <!-- PERFORMANCE -->
-      <div class="menu-section">
-        <div class="section-trigger">Performance</div>
-        <div class="nav-list">
+      <!-- PERFORMANCE (collapsible) -->
+      <div class="menu-section" style="margin-top:12px;">
+        <div class="section-trigger" data-target="perfMenu">
+          Performance <span class="arrow" id="arrowPerf">▾</span>
+        </div>
+
+        <div id="perfMenu" class="section-content open">
 
           <a href="{% url 'graph' %}" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M3 3v18h18v-2H5V3H3zm6 12h2V9H9v6zm4 0h2V5h-2v10zm4 0h2v-8h-2v8z"/></svg>
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 3h2v18H3V3Zm4 10h2v8H7v-8Zm4-6h2v14h-2V7Zm4 4h2v10h-2V11Zm4-8h2v18h-2V3Z"/></svg>
             Graph
           </a>
 
           <a href="{% url 'settings' %}" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.49 7.49 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.42 7.42 0 00-1.62-.94l-.36-2.54A.5.5 0 0013.9 1h-3.8a.5.5 0 00-.49.42l-.36 2.54c-.57.23-1.11.54-1.62.94l-2.39-.96a.5.5 0 00-.6.22L2.72 7.98a.5.5 0 00.12.64l2.03 1.58a7.49 7.49 0 000 1.88L2.84 14.52a.5.5 0 00-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.5.4 1.05.71 1.62.94l.36 2.54c.04.24.25.42.49.42h3.8c.24 0 .45-.18.49-.42l.36-2.54c.57-.23 1.11-.54 1.62-.94l2.39.96c.22.09.47 0 .6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5z"/></svg>
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14 12.94a7.83 7.83 0 0 0 .05-.94 7.83 7.83 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 1h-3.8a.5.5 0 0 0-.49.42l-.36 2.54a7.3 7.3 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 7.48a.5.5 0 0 0 .12.64l2.03 1.58a7.83 7.83 0 0 0-.05.94 7.83 7.83 0 0 0 .05.94L2.83 14.52a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.38 1.05.7 1.63.94l.36 2.54a.5.5 0 0 0 .49.42h3.8a.5.5 0 0 0 .49-.42l.36-2.54c.58-.24 1.13-.56 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64Zm-7.14 2.56A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5Z"/></svg>
             Settings
           </a>
 
           <a href="{% url 'help_support' %}" class="nav-item">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-            Help & Support
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm1 15h-2v-2h2v2Zm0-4h-2V7h2v6z"/></svg>
+            Help &amp; Support
           </a>
 
           <a href="{% url 'logout' %}" class="nav-item logout">
-            <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 17l1.41-1.41L8.83 13H21v-2H8.83l2.58-2.59L10 7l-7 7 7 7ZM3 5h8V3H3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H3V5Z"/></svg>
             Logout
           </a>
 
@@ -679,43 +698,54 @@
 
     <!-- MAIN -->
     <main class="main-body">
-      <h1 class="welcome-text">
-        Welcome back, <span class="uname">{{ request.user.username|default:"Student" }}</span>.
-      </h1>
 
-      <span class="motivation-line">
-        {% if subjects %}
-          Your subjects are set — consistency is the cheat code. Let’s keep going.
-        {% else %}
-          You haven’t chosen your subjects yet. Tap <strong>Add New</strong> to set them up.
-        {% endif %}
-      </span>
+      <section class="welcome">
+        <h1>Welcome back, <span class="uname">{{ request.user.username|default:"Student" }}</span>.</h1>
+        <p>
+          {% if subjects %}
+            Your subjects are set — consistency is the cheat code. Let’s keep going.
+          {% else %}
+            You haven’t chosen your subjects yet. Tap <strong>Add New</strong> to set them up.
+          {% endif %}
+        </p>
+      </section>
 
+      <section class="stats-grid">
       <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-label">Total Sessions</span>
-          <span class="stat-value">{{ total_sessions|default:0 }}</span>
-          <div class="stat-sub">{{ total_sessions|default:0 }} sessions</div>
-        </div>
 
-        <div class="stat-card">
-          <span class="stat-label">Study Streak</span>
-          <span class="stat-value">{{ streak_days|default:0 }}</span>
-          <div class="stat-sub">{{ streak_days|default:0 }} days</div>
-        </div>
+  <!-- ✅ TOTAL SESSIONS -->
+  <div class="stat-card">
+ <span class="stat-label" style="color: #111; font-size: 18px;" >Total Sessions</span>
+    <span class="stat-value black-big">{{ total_sessions|default:0 }}</span>
+    <div class="stat-sub">{{ total_sessions|default:0 }} sessions</div>
+  </div>
 
-        <div class="stat-card">
-          <span class="stat-label">Best Subject</span>
-          <span class="stat-value" style="font-size:30px;">
-            {{ best_subject|default:"—" }}
-          </span>
-          <div class="stat-sub">Highest performance so far</div>
-        </div>
-      </div>
+  <!-- ✅ STUDY STREAK -->
+  <div class="stat-card">
+    <span class="stat-label" style="color: #111; font-size: 18px;">Study Streak</span>
+    <span class="stat-value black-big">{{ streak_days|default:0 }}</span>
+    <div class="stat-sub">{{ streak_days|default:0 }} days</div>
+  </div>
 
-      {% if subjects %}
-        <div class="subject-section">
-          <h2 class="subject-title">Subject Performance</h2>
+  <!-- ✅ BEST SUBJECT -->
+  <div class="stat-card">
+    <span class="stat-label" style="color: #111; font-size: 18px;">Best Subject</span>
+
+    <!-- ✅ Big black value + purple gradient subject name -->
+    <span class="stat-value black-big best-subject">
+      <span class="best-gradient">{{ best_subject|default:"—" }}</span>
+    </span>
+
+    <div class="stat-sub">Highest performance so far</div>
+  </div>
+
+</div>
+      </section>
+
+      <section class="subject-section">
+        <h2 class="subject-title">Subject Performance</h2>
+
+        {% if subjects %}
           <div class="subject-grid">
             {% for s in subjects %}
               <div class="subject-card">
@@ -724,18 +754,15 @@
               </div>
             {% endfor %}
           </div>
-        </div>
-      {% else %}
-        <div class="empty-subjects">
-          No subjects yet. Tap <strong>Add New</strong> to choose your subjects.
-        </div>
-      {% endif %}
+        {% else %}
+          <div class="empty">No subjects yet. Tap <strong>Add New</strong> to choose your subjects.</div>
+        {% endif %}
+      </section>
+
     </main>
   </div>
 
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
-
     // ===== Drawer open/close =====
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
@@ -744,171 +771,85 @@
     function openDrawer(){
       sidebar.classList.add("open");
       overlay.classList.add("show");
-      document.body.style.overflow = "hidden";
     }
     function closeDrawer(){
       sidebar.classList.remove("open");
       overlay.classList.remove("show");
-      document.body.style.overflow = "";
     }
 
-    if(menuBtn){
-      menuBtn.addEventListener("click", () => {
-        if(sidebar.classList.contains("open")) closeDrawer();
-        else openDrawer();
-      });
-    }
-    if(overlay) overlay.addEventListener("click", closeDrawer);
+    menuBtn.addEventListener("click", () => {
+      if (sidebar.classList.contains("open")) closeDrawer();
+      else openDrawer();
+    });
 
-    // Close drawer when clicking a sidebar link (mobile)
+    overlay.addEventListener("click", closeDrawer);
+
+    // close drawer when clicking link (mobile)
     document.querySelectorAll(".sidebar a.nav-item").forEach(a => {
       a.addEventListener("click", () => closeDrawer());
+    });
+
+    // ===== Collapsible sections (Main Menu + Performance can close) =====
+    document.querySelectorAll(".section-trigger").forEach(t => {
+      t.addEventListener("click", () => {
+        const targetId = t.getAttribute("data-target");
+        const panel = document.getElementById(targetId);
+        panel.classList.toggle("open");
+
+        if (targetId === "mainMenu") {
+          document.getElementById("arrowMain").textContent = panel.classList.contains("open") ? "▾" : "▸";
+        }
+        if (targetId === "perfMenu") {
+          document.getElementById("arrowPerf").textContent = panel.classList.contains("open") ? "▾" : "▸";
+        }
+      });
     });
 
     // ===== Profile dropdown =====
     const dotsBtn = document.getElementById("dotsBtn");
     const dropdown = document.getElementById("profileDropdown");
-    if(dotsBtn && dropdown){
-      dotsBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        dropdown.classList.toggle("show");
-      });
-      document.addEventListener("click", () => dropdown.classList.remove("show"));
-    }
 
-    // ===== Add New behavior (setup subjects first, else add score) =====
-    const hasSubjects = {{ subjects|length|default:0 }};
-    const addNewBtn = document.getElementById("addNewBtn");
-    if(addNewBtn){
-      addNewBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        if (!hasSubjects) window.location.href = "{% url 'setup_subjects' %}";
-        else window.location.href = "{% url 'add_score' %}";
-      });
-    }
+    dotsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdown.classList.toggle("show");
+    });
 
-    // ===== Avatar upload (Gallery open + preview + auto-submit) =====
+    document.addEventListener("click", () => dropdown.classList.remove("show"));
+
+    // ===== Dashboard avatar upload (DB-backed) =====
     const avatarBtn = document.getElementById("avatarBtn");
     const fileInput = document.getElementById("dashFileInput");
+    const avatarImg = document.getElementById("dashAvatarImg");
     const form = document.getElementById("dashAvatarForm");
-    const img = document.getElementById("dashAvatarImg");
-    const editBtn = document.getElementById("editBtn");
 
-    function openPicker(){
-      if(fileInput) fileInput.click();
-    }
+    // IMPORTANT: this makes tapping the + open gallery on mobile
+    avatarBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      fileInput.click();
+    });
 
-    if(avatarBtn && fileInput && form){
-      avatarBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        openPicker();
-      });
-    }
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
 
-    if(editBtn){
-      editBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        if(dropdown) dropdown.classList.remove("show");
-        openPicker();
-      });
-    }
+      // instant preview before submit
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        avatarImg.src = ev.target.result;
+        // submit right after preview so it saves to DB
+        form.submit();
+      };
+      reader.readAsDataURL(file);
+    });
 
-    if(fileInput && form){
-      fileInput.addEventListener("change", () => {
-        const file = fileInput.files && fileInput.files[0];
-        if(!file) return;
-
-        // Preview instantly
-        if(img){
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            img.src = ev.target.result;
-            setTimeout(() => form.submit(), 150);
-          };
-          reader.readAsDataURL(file);
-        }else{
-          form.submit();
-        }
-      });
-    }
-
-    // ===== User Search (autocomplete) =====
-    const searchInput = document.getElementById("userSearch");
-    const searchDD = document.getElementById("searchDD");
-    let t = null;
-
-    function clearDD(){
-      if(!searchDD) return;
-      searchDD.innerHTML = "";
-      searchDD.classList.remove("show");
-    }
-
-    function renderUsers(users){
-      if(!searchDD) return;
-      searchDD.innerHTML = "";
-
-      if(!users || users.length === 0){
-        clearDD();
-        return;
-      }
-
-      users.slice(0, 8).forEach(u => {
-        const row = document.createElement("div");
-        row.className = "search-item";
-        row.innerHTML = `<span class="pill">@</span><span>${u}</span>`;
-        row.addEventListener("click", () => {
-          window.location.href = "{% url 'profile' '___USER___' %}".replace("___USER___", u);
-        });
-        searchDD.appendChild(row);
-      });
-
-      searchDD.classList.add("show");
-    }
-
-    async function fetchUsers(q){
-      try{
-        const url = "{% url 'user_search' %}" + "?q=" + encodeURIComponent(q);
-        const res = await fetch(url, {headers: {"X-Requested-With":"XMLHttpRequest"}});
-        if(!res.ok) return [];
-        const data = await res.json();
-        return data.users || [];
-      }catch(err){
-        return [];
-      }
-    }
-
-    if(searchInput){
-      searchInput.addEventListener("input", () => {
-        const q = searchInput.value.trim();
-        if(t) clearTimeout(t);
-
-        if(q.length < 1){
-          clearDD();
-          return;
-        }
-
-        t = setTimeout(async () => {
-          const users = await fetchUsers(q);
-          renderUsers(users);
-        }, 180);
-      });
-
-      document.addEventListener("click", (e) => {
-        if(!searchDD) return;
-        if(e.target === searchInput || searchDD.contains(e.target)) return;
-        clearDD();
-      });
-    }
-
-    // Bell (placeholder)
-    const bellBtn = document.getElementById("bellBtn");
-    if(bellBtn){
-      bellBtn.addEventListener("click", () => {
-        alert("Notifications page coming next.");
-      });
-    }
-
-  });
+    // ===== Add New behavior (first time -> setup subjects) =====
+    const hasSubjects = {{ subjects|length|default:0 }};
+    document.getElementById("addNewBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      if (!hasSubjects) window.location.href = "{% url 'setup_subjects' %}";
+      else window.location.href = "{% url 'add_score' %}";
+    });
   </script>
 
 </body>

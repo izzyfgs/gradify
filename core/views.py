@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils.timezone import now
 from .models import UserSubject, Score, AIConversation, AIMessage
+from django.db.models import OuterRef, Subquery
 
 
 
@@ -939,52 +940,70 @@ def get_or_create_profile(user):
     profile, created = UserProfile.objects.get_or_create(user=user)
     return profile
 
+from django.db.models import OuterRef, Subquery, F, ExpressionWrapper, FloatField
+
 @login_required
 def dashboard_view(request):
     profile = get_or_create_profile(request.user)
     settings_obj, _ = UserSettings.objects.get_or_create(user=request.user)
     user_subjects = UserSubject.objects.filter(user=request.user)
     
-    # FIX: Only redirect on GET. This stops the "disappearing" bug during uploads.
+    # Redirect check for new users
     if not user_subjects.exists() and request.method == "GET":
         return redirect("setup_subjects")
 
-    all_scores = Score.objects.filter(user=request.user).order_by('-created_at')
+    # Optimization: Calculate percentage inside the subquery
+    # We use F expressions to pull 'correct' and 'total' from the DB
+    latest_score_subquery = Score.objects.filter(
+        user=request.user, 
+        subject=OuterRef('name')
+    ).annotate(
+        # We calculate the percentage here so it becomes a real field the DB can return
+        calc_pct=ExpressionWrapper(
+            F('correct') * 100.0 / F('total'), 
+            output_field=FloatField()
+        )
+    ).order_by('-created_at').values('calc_pct')[:1]
+
+    # Annotate subjects with their latest score
+    subjects_with_latest = user_subjects.annotate(
+        latest_pct=Subquery(latest_score_subquery)
+    )
+
     subject_performances = []
     total_percentage_sum = 0
     subjects_with_scores = 0
     highest_pct = -1.0
     best_subject_name = "—"
 
-    for sub in user_subjects:
-        latest_score = all_scores.filter(subject=sub.name).first()
-        if latest_score:
-            pct = float(latest_score.percentage)
+    for sub in subjects_with_latest:
+        # Convert to float safely
+        pct = float(sub.latest_pct) if sub.latest_pct is not None else 0.0
+        
+        if sub.latest_pct is not None:
             total_percentage_sum += pct
             subjects_with_scores += 1
             if pct > highest_pct:
                 highest_pct = pct
                 best_subject_name = sub.name.upper()
-        else:
-            pct = 0
-        subject_performances.append({"name": sub.name, "percent": pct})
+        
+        subject_performances.append({"name": sub.name, "percent": round(pct, 1)})
 
-    avg_percent = 0
-    if subjects_with_scores > 0:
-        avg_percent = round(total_percentage_sum / subjects_with_scores, 1)
-
+    avg_percent = round(total_percentage_sum / subjects_with_scores, 1) if subjects_with_scores > 0 else 0
     unread_notifications = Notification.objects.filter(user=request.user, is_read=False).count()
 
     context = {
         "subjects": subject_performances,
         "best_subject": best_subject_name,
-        "total_sessions": all_scores.count(), 
+        "total_sessions": Score.objects.filter(user=request.user).count(), 
         "avg_percent": avg_percent,
         "profile": profile,
         "notif_count": unread_notifications,
         "dark_mode": settings_obj.dark_mode,
     }
+
     return render(request, "dashboard.html", context)
+
 @login_required(login_url="login")
 def edit_profile_view(request):
     profile = get_or_create_profile(request.user)
@@ -1004,6 +1023,7 @@ def edit_profile_view(request):
         profile.save()
         messages.success(request, "Profile updated!")
         # Correctly passing the username to the 'profile' URL
+        # Pass the username of the current user to the redirect
         return redirect('profile', username=request.user.username)
 
     # Logic only reaches here if it's a GET request
@@ -1094,9 +1114,13 @@ def profile_view(request, username):
     following_count = Follow.objects.filter(follower=user_obj).count()
 
     is_following = False
-    if request.user != user_obj:
+    if request.user.is_authenticated and request.user != user_obj:
         is_following = Follow.objects.filter(follower=request.user, following=user_obj).exists()
 
+    # 1. Calculate can_message
+    can_message = mutual_follow(request.user, user_obj)
+
+    # 2. Add everything to the context dictionary
     context = {
         "user_obj": user_obj,
         "profile": profile,
@@ -1104,8 +1128,24 @@ def profile_view(request, username):
         "followers_count": followers_count,
         "following_count": following_count,
         "is_following": is_following,
+        "can_message": can_message, # Added this
     }
-    return render(request, "profile.html", context)
+
+    # 3. Pass the 'context' dictionary here
+    return render(request, 'profile.html', context)
+
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+
+def mutual_follow(user_a, user_b):
+    return (
+        Follow.objects.filter(follower=user_a, following=user_b).exists()
+        and Follow.objects.filter(follower=user_b, following=user_a).exists()
+    )
+
+
 
 
 # ✅ UPDATE PROFILE (BIO + PHOTOS)
@@ -1113,21 +1153,45 @@ def profile_view(request, username):
 
 
 # ✅ FOLLOW/UNFOLLOW
+# core/views.py
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import Follow, Notification
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 @login_required
 def follow_toggle_view(request, username):
-    target = get_object_or_404(User, username=username)
+    user_to_follow = get_object_or_404(User, username=username)
 
-    if request.user == target:
-        return redirect("profile", username=username)
+    # Prevent self-follow
+    if user_to_follow == request.user:
+        messages.error(request, "You can't follow yourself!")
+        return redirect('profile', username=username)
 
-    obj = Follow.objects.filter(follower=request.user, following=target)
+    # Check if already following
+    follow_obj, created = Follow.objects.get_or_create(
+        follower=request.user,
+        following=user_to_follow
+    )
 
-    if obj.exists():
-        obj.delete()
+    if created:
+        # New follow → create notification for the followed user
+        Notification.objects.create(
+            user=user_to_follow,                    # ← who receives it
+            message=f"{request.user.username} started following you!",
+            link=f"/profile/{request.user.username}/",  # optional link to follower's profile
+            is_read=False
+        )
+        messages.success(request, f"You are now following {user_to_follow.username}")
     else:
-        Follow.objects.create(follower=request.user, following=target)
+        # Already following → unfollow
+        follow_obj.delete()
+        messages.success(request, f"You unfollowed {user_to_follow.username}")
 
-    return redirect("profile", username=username)
+    return redirect('profile', username=username)
 
 
 # ✅ CREATE POST
@@ -1183,8 +1247,7 @@ def comment_post_view(request, post_id):
     return JsonResponse({"comments": post.comments.count()})
 
 
-# ✅ NOTIFICATIONS PAGE
-@login_required
+# In views.py
 def notifications_view(request):
     notes = Notification.objects.filter(user=request.user).order_by("-created_at")
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
@@ -1677,66 +1740,61 @@ def _status_for(user_obj):
 @login_required
 def messages_inbox(request):
     me = request.user
-    convs = Conversation.objects.filter(Q(user1=me) | Q(user2=me)).order_by("-updated_at")
+    threads = Thread.objects.filter(participants=me).order_by("-updated_at")
 
     cards = []
-    for c in convs:
-        other = c.other_user(me)
-        last_msg = c.messages.last()
+    for t in threads:
+        other = t.participants.exclude(id=me.id).first()
+        if not other: continue 
+        
+        last_msg = t.messages.order_by('-created_at').first()
 
-        # Logic for unread count
-        if c.user1_id == me.id:
-            unread = c.messages.filter(read_by_user1=False).exclude(sender=me).count()
-        else:
-            unread = c.messages.filter(read_by_user2=False).exclude(sender=me).count()
+        # WhatsApp-style Preview Logic
+        preview_text = "Start a conversation..."
+        if last_msg:
+            if last_msg.text:
+                preview_text = last_msg.text
+            elif last_msg.image:
+                preview_text = "📷 Photo"
+            elif last_msg.audio:
+                preview_text = "🎤 Voice note"
 
-        # GET ONLINE STATUS USING YOUR HELPER
+        # Truncate for the UI
+        if len(preview_text) > 60:
+            preview_text = preview_text[:57] + "..."
+
         is_online, status_text = _status_for(other)
 
         cards.append({
-            "id": c.id,
+            "id": t.id,
             "other": other,
-            "is_online": is_online,      # Added this
-            "status_text": status_text,  # Added this
-            "last_text": (last_msg.text[:70] + "…") if last_msg and len(last_msg.text) > 70 else (last_msg.text if last_msg else "Start a conversation…"),
-            "last_time": last_msg.created_at if last_msg else c.created_at,
-            "unread": unread,
+            "is_online": is_online,
+            "status_text": status_text,
+            "last_text": preview_text,
+            "last_time": last_msg.created_at if last_msg else t.updated_at,
+            "unread": 0, # Add your unread logic here later
         })
 
     return render(request, "messages.html", {"conversations": cards})
 
-
 @login_required
 def user_search_ajax(request):
-    """
-    Autocomplete: /messages/search/?q=ja
-    returns usernames + dp urls
-    """
-    me = request.user
-    q = (request.GET.get("q") or "").strip()
+    q = request.GET.get('q', '').strip()
     if not q:
-        return JsonResponse({"ok": True, "results": []})
+        return JsonResponse({'ok': True, 'results': []})
 
-    # Search for usernames starting with 'q'
-    users = User.objects.filter(username__istartswith=q).exclude(id=me.id)[:8]
+    # Use icontains for a flexible search
+    users = User.objects.filter(username__icontains=q).exclude(id=request.user.id)[:8]
     
     results = []
     for u in users:
-        dp_url = ""
-        try:
-            # Check if userprofile and profile_pic exist
-            if hasattr(u, 'userprofile') and u.userprofile.profile_pic:
-                dp_url = u.userprofile.profile_pic.url
-        except Exception:
-            dp_url = ""
-            
+        # Important: Ensure the key 'dp' is always present
         results.append({
-            "username": u.username,
-            "dp": dp_url, # Key is 'dp' to match the JS template literal
+            'username': u.username,
+            'dp': u.userprofile.profile_pic.url if hasattr(u, 'userprofile') and u.userprofile.profile_pic else ''
         })
-        
-    return JsonResponse({"ok": True, "results": results})
-
+    
+    return JsonResponse({'ok': True, 'results': results})
 
 from django.db.models import Q
 
@@ -1744,59 +1802,6 @@ from django.shortcuts import redirect, get_object_or_404
 from django.db.models import Q
 from .models import Conversation
 
-@login_required
-def start_chat(request, username):
-    other_user = get_object_or_404(User, username=username)
-    
-    # Prevent chatting with yourself
-    if other_user == request.user:
-        return redirect('messages_inbox')
-
-    # 1. Look for existing conversation (check both slots)
-    conv = Conversation.objects.filter(
-        (Q(user1=request.user) & Q(user2=other_user)) |
-        (Q(user1=other_user) & Q(user2=request.user))
-    ).first()
-
-    # 2. If it doesn't exist, create it
-    if not conv:
-        conv = Conversation.objects.create(user1=request.user, user2=other_user)
-        # Force save to ensure ID exists
-        conv.save()
-
-    # 3. REDIRECT to the actual thread
-    return redirect('chat_thread', conv_id=conv.id)
-@login_required
-def chat_thread(request, conv_id):
-    me = request.user
-    # Use select_related to make sure user objects are loaded
-    conv = get_object_or_404(Conversation.objects.select_related('user1', 'user2'), id=conv_id)
-
-    # Compare the objects directly - this is more reliable in Django
-    if me != conv.user1 and me != conv.user2:
-        print(f"DEBUG: Access denied for {me}. Conv users: {conv.user1}, {conv.user2}") # Check your console!
-        return redirect("messages_inbox")
-
-    other = conv.other_user(me)
-
-    # --- Mark as Read Logic ---
-    # Optimized: update all at once
-    unread_msgs = conv.messages.exclude(sender=me)
-    if conv.user1 == me:
-        unread_msgs.filter(read_by_user1=False).update(read_by_user1=True)
-    else:
-        unread_msgs.filter(read_by_user2=False).update(read_by_user2=True)
-
-    msgs = conv.messages.select_related("sender").all()
-    is_online, status_text = _status_for(other)
-
-    return render(request, "chat.html", {
-        "conv": conv,
-        "other": other,
-        "messages": msgs,
-        "is_online": is_online,
-        "status_text": status_text,
-    })
 
 
 from django.utils import timezone
@@ -1804,82 +1809,18 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 
-@login_required
-def chat_send_ajax(request, conv_id):
-    if request.method != "POST":
-        return JsonResponse({"ok": False, "error": "POST only"}, status=400)
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Thread, Message # Using Thread to match your previous errors
 
-    me = request.user
-    conv = get_object_or_404(Conversation, id=conv_id)
 
-    # 1. Get all possible inputs
-    text = (request.POST.get("text") or "").strip()
-    image = request.FILES.get("image")
-    audio = request.FILES.get("audio") # <--- Make sure you are grabbing this!
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Thread, Message # Use Thread
 
-    # 2. Update the logic check: Message is only "empty" if ALL THREE are missing
-    if not text and not image and not audio:
-        return JsonResponse({"ok": False, "error": "Message cannot be empty"}, status=400)
 
-    # 3. Create the message
-    msg = Message.objects.create(
-        conversation=conv,
-        sender=me,
-        text=text,
-        image=image,
-        audio=audio, # <--- Save it here
-        read_by_user1=(conv.user1_id == me.id),
-        read_by_user2=(conv.user2_id == me.id),
-    )
-    
-    # ... rest of your view (save conv timestamp and return JsonResponse)
-@login_required
-def chat_poll_ajax(request, conv_id):
-    me = request.user
-    conv = get_object_or_404(Conversation, id=conv_id)
-
-    if not (conv.user1_id == me.id or conv.user2_id == me.id):
-        return JsonResponse({"ok": False, "error": "Not allowed"}, status=403)
-
-    after_str = request.GET.get("after", "0")
-    try:
-        after = int(after_str)
-    except ValueError:
-        after = 0
-
-    qs = conv.messages.select_related("sender").filter(id__gt=after).order_by("id")
-
-    messages_data = []
-    new_message_ids = []  # Collect IDs of messages we're about to mark as read
-
-    for m in qs:
-        item = {
-            "id": m.id,
-            "mine": (m.sender_id == me.id),
-            "text": m.text or "",           # avoid null → ""
-            "time": m.created_at.strftime("%I:%M %p").lstrip("0"),
-            "sender": m.sender.username,
-            "image_url": m.image.url if m.image else None,
-            "audio_url": m.audio.url if m.audio else None,
-        }
-        messages_data.append(item)
-
-        # Only mark incoming messages that are actually being delivered now
-        if m.sender_id != me.id:
-            new_message_ids.append(m.id)
-
-    # Mark only the newly delivered incoming messages as read
-    if new_message_ids:
-        incoming_new = conv.messages.filter(id__in=new_message_ids)
-        if conv.user1_id == me.id:
-            incoming_new.filter(read_by_user1=False).update(read_by_user1=True)
-        else:
-            incoming_new.filter(read_by_user2=False).update(read_by_user2=True)
-
-    return JsonResponse({
-        "ok": True,
-        "messages": messages_data,
-    })
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
@@ -1909,40 +1850,44 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from .models import Score, UserSubject
 
+
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from .models import Conversation
+
 @login_required
-def graph_view(request):
-    user_subjects = list(
-        UserSubject.objects.filter(user=request.user).values_list("name", flat=True)
-    )
+def open_chat_with_user(request, username):
+    other_user = get_object_or_404(User, username=username)
 
-    scores = (
-        Score.objects.filter(user=request.user, subject__in=user_subjects)
-        .order_by("year", "created_at")
-    )
+    if other_user == request.user:
+        # Can't message yourself → redirect to inbox or show error
+        return redirect('messages_inbox')
 
-    # labels will be years: ["2020","2021","2022"...]
-    labels = sorted({str(s.year) for s in scores})
+    # Get or create conversation between you and them
+    conversation, created = Conversation.get_or_create_between(request.user, other_user)
 
-    # subject -> year -> percentage
-    subject_year_pct = defaultdict(dict)
-    for s in scores:
-        subject_year_pct[s.subject][str(s.year)] = float(s.percentage)
+    # Redirect to the specific chat thread
+    return redirect('chat_thread', conv_id=conversation.id)
+# core/views.py
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Conversation
 
-    datasets = []
-    for subj in user_subjects:
-        data = [subject_year_pct.get(subj, {}).get(y, None) for y in labels]
-        datasets.append({
-            "label": subj,
-            "data": data,
-        })
+@login_required
+def open_chat(request, username):
+    other_user = get_object_or_404(User, username=username)
 
-    context = {
-        "labels_json": json.dumps(labels),
-        "datasets_json": json.dumps(datasets),
-        "subjects": user_subjects,
-    }
-    return render(request, "graph.html", context)
+    if other_user == request.user:
+        return redirect('messages_inbox')  # or show error
 
+    # Try to find existing conversation (using your normalize_pair method)
+    conv = Conversation.get_or_create_between(request.user, other_user)[0]
+
+    # Redirect to the chat thread page
+    return redirect('chat_thread', conv_id=conv.id)
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -1951,6 +1896,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 
 from .models import UserSettings
+# In core/views.py
+from .models import Thread, Message
+
+# core/views.py
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Thread, Message # Use your actual model names
+
 
 
 def get_or_create_settings(user):
@@ -2101,3 +2054,688 @@ def update_streak(sender, request, user, **kwargs):
 
     profile.last_login_date = today
     profile.save()
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+
+@login_required
+def search_view(request):
+    return render(request, "search.html")
+
+
+
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from datetime import timedelta
+
+from .models import UserProfile
+
+def change_password_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip().lower()
+        new_password = request.POST.get("new_password", "")
+        confirm_password = request.POST.get("confirm_password", "")
+
+        if not username or not email or not new_password or not confirm_password:
+            return render(request, "change_password.html", {"error": "Please fill in all fields."})
+
+        if new_password != confirm_password:
+            return render(request, "change_password.html", {"error": "Passwords do not match."})
+
+        if len(new_password) < 8:
+            return render(request, "change_password.html", {"error": "Password must be at least 8 characters."})
+
+        # Find user + confirm email matches
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return render(request, "change_password.html", {"error": "User not found."})
+
+        if (user.email or "").lower() != email:
+            return render(request, "change_password.html", {"error": "Username and email do not match."})
+
+        # Ensure profile exists
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+
+        # Enforce 30-day rule
+        if profile.last_password_change:
+            if timezone.now() < profile.last_password_change + timedelta(days=30):
+                remaining = (profile.last_password_change + timedelta(days=30)) - timezone.now()
+                days_left = max(1, remaining.days)
+                return render(request, "change_password.html", {
+                    "error": f"You can change your password again in {days_left} day(s)."
+                })
+
+        # Save password to DB (hashed)
+        user.set_password(new_password)
+        user.save()
+
+        profile.last_password_change = timezone.now()
+        profile.save()
+
+        # Optional: log user in immediately
+        login(request, user)
+
+        return redirect("dashboard")
+
+    return render(request, "change_password.html")
+
+from decimal import Decimal
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+from .models import RewardsClaim
+from .models import Score  # adjust if needed
+# If it's in models.py
+from .utils import get_streak
+
+# Adjust these imports to match your wallet models
+from .models import Wallet, Transaction
+
+
+def _get_or_create_wallet(user):
+    wallet, _ = Wallet.objects.get_or_create(user=user, defaults={"balance": Decimal("1000.00")})
+    return wallet
+
+
+def _build_rewards(total_sessions: int, streak_days: int):
+    """
+    Returns a list of reward dicts:
+    - Sessions: every 10 sessions => +$25
+    - Streak: every 10 days => +$10
+    """
+    rewards = []
+
+    # Sessions milestones
+    sessions_step = 10
+    sessions_reward = Decimal("25.00")
+    max_sessions_milestone = (total_sessions // sessions_step) * sessions_step
+    for ms in range(sessions_step, max_sessions_milestone + 1, sessions_step):
+        rewards.append({
+            "type": "sessions",
+            "milestone": ms,
+            "title": f"{ms} Sessions Completed",
+            "subtitle": "Consistency payout",
+            "amount": sessions_reward,
+        })
+
+    # Streak milestones
+    streak_step = 10
+    streak_reward = Decimal("10.00")
+    max_streak_milestone = (streak_days // streak_step) * streak_step
+    for ms in range(streak_step, max_streak_milestone + 1, streak_step):
+        rewards.append({
+            "type": "streak",
+            "milestone": ms,
+            "title": f"{ms}-Day Streak",
+            "subtitle": "Streak bonus",
+            "amount": streak_reward,
+        })
+
+    # Optional “extra” rewards (safe + realistic)
+    # Example: first ever session reward (one-time)
+    if total_sessions >= 1:
+        rewards.append({
+            "type": "sessions",
+            "milestone": 1,
+            "title": "First Session",
+            "subtitle": "Welcome reward",
+            "amount": Decimal("5.00"),
+            "one_off": True,
+        })
+
+    return rewards
+
+
+@login_required
+def rewards_view(request):
+    total_sessions = Score.objects.filter(user=request.user).count()
+    streak_days = get_streak(request.user)
+    wallet = _get_or_create_wallet(request.user)
+
+    all_rewards = _build_rewards(total_sessions, streak_days)
+
+    # Fetch claims
+    claims = RewardsClaim.objects.filter(user=request.user)
+    claimed_set = set((c.reward_type, c.milestone) for c in claims)
+
+    # Mark claimable/claimed
+    display = []
+    for r in all_rewards:
+        one_off = r.get("one_off", False)
+        key_type = r["type"]
+        key_ms = r["milestone"]
+
+        # for the first-session reward: treat milestone=1 as unique claim
+        already_claimed = (key_type, key_ms) in claimed_set
+
+        display.append({
+            **r,
+            "claimed": already_claimed,
+            "claimable": (not already_claimed),
+            "badge": "Claimed" if already_claimed else "Available",
+        })
+
+    # Sort: available first, then by milestone desc
+    display.sort(key=lambda x: (x["claimed"], -x["milestone"]))
+
+    context = {
+        "wallet_balance": wallet.balance,
+        "total_sessions": total_sessions,
+        "streak_days": streak_days,
+        "rewards": display,
+    }
+    return render(request, "rewards.html", context)
+
+
+@login_required
+@transaction.atomic
+def claim_reward(request):
+    if request.method != "POST":
+        return redirect("rewards")
+
+    reward_type = request.POST.get("reward_type")
+    milestone = request.POST.get("milestone")
+    amount = request.POST.get("amount")
+
+    if reward_type not in ("sessions", "streak"):
+        messages.error(request, "Invalid reward.")
+        return redirect("rewards")
+
+    try:
+        milestone = int(milestone)
+        amount = Decimal(amount)
+    except Exception:
+        messages.error(request, "Invalid reward data.")
+        return redirect("rewards")
+
+    # Recompute eligibility (server-side, no cheating)
+    total_sessions = Score.objects.filter(user=request.user).count()
+    streak_days = get_streak(request.user)
+
+    eligible = False
+    if reward_type == "sessions":
+        eligible = (milestone == 1 and total_sessions >= 1) or (milestone % 10 == 0 and total_sessions >= milestone)
+        # enforce allowed amounts
+        if milestone == 1 and amount != Decimal("5.00"):
+            eligible = False
+        if milestone % 10 == 0 and amount != Decimal("25.00"):
+            eligible = False
+
+    if reward_type == "streak":
+        eligible = (milestone % 10 == 0 and streak_days >= milestone)
+        if amount != Decimal("10.00"):
+            eligible = False
+
+    if not eligible:
+        messages.error(request, "You’re not eligible for that reward yet.")
+        return redirect("rewards")
+
+    # Prevent double claim
+    exists = RewardsClaim.objects.filter(user=request.user, reward_type=reward_type, milestone=milestone).exists()
+    if exists:
+        messages.info(request, "Already claimed.")
+        return redirect("rewards")
+
+    wallet = _get_or_create_wallet(request.user)
+
+    # Credit wallet
+    wallet.balance = wallet.balance + amount
+    wallet.save()
+
+    # Create wallet transaction (make sure your model fields match)
+    WalletTransaction.objects.create(
+        user=request.user,
+        txn_type="credit",
+        amount=amount,
+        remark=f"Gradify Reward: {reward_type} milestone ({milestone})",
+    )
+
+    RewardsClaim.objects.create(
+        user=request.user,
+        reward_type=reward_type,
+        milestone=milestone,
+        amount=amount
+    )
+
+    messages.success(request, f"Reward claimed! +${amount}")
+    return redirect("rewards")
+from django.urls import reverse
+from .models import Notification
+
+def create_notification(user, notif_type, text, link_name=None, link_kwargs=None):
+    """
+    Creates a notification with dynamic URL reversing.
+    """
+    url = ""
+    if link_name:
+        url = reverse(link_name, kwargs=link_kwargs)
+    
+    return Notification.objects.create(
+        user=user, 
+        notif_type=notif_type, 
+        text=text, 
+        url=url
+    )
+
+@login_required
+def like_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    # ... logic to save the like in your database ...
+
+    # NOW you can use the notification logic
+    if post.user != request.user:
+        create_notification(
+            user=post.user,
+            notif_type="like",
+            text=f"@{request.user.username} liked your post.",
+            link_name="view_post",
+            link_kwargs={"post_id": post.id}
+        )
+    return redirect('post_detail', post_id=post.id)
+
+
+@login_required
+def claim_reward(request):
+    amount = 50 # Or however you calculate the reward
+    # ... logic to add money to the user's wallet ...
+
+    create_notification(
+        user=request.user,
+        notif_type="reward",
+        text=f"You claimed a reward: +${amount} 🎉",
+        link_name="wallet_home"
+    )
+    return redirect('wallet_home')
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .models import Notification
+
+
+@login_required
+def notifications_view(request):
+    notifs = Notification.objects.filter(user=request.user)
+
+    # Option 1 (common): mark all as read when opening the page
+    notifs.filter(is_read=False).update(is_read=True)
+
+    return render(request, "notifications.html", {"notifications": notifs})
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404, render
+from .models import Follow, Post  # adjust if your Post model name differs
+
+
+@login_required
+def followers_list_view(request, username):
+    user_obj = get_object_or_404(User, username=username)
+
+    # People who follow user_obj
+    followers_qs = Follow.objects.filter(following=user_obj).select_related("follower")
+    followers_users = [f.follower for f in followers_qs]
+
+    # Who request.user is currently following (for button state)
+    my_following_ids = set(
+        Follow.objects.filter(follower=request.user).values_list("following_id", flat=True)
+    )
+
+    return render(request, "followers.html", {
+        "user_obj": user_obj,
+        "users": followers_users,
+        "my_following_ids": my_following_ids,
+    })
+
+
+@login_required
+def following_list_view(request, username):
+    user_obj = get_object_or_404(User, username=username)
+
+    # People user_obj is following
+    following_qs = Follow.objects.filter(follower=user_obj).select_related("following")
+    following_users = [f.following for f in following_qs]
+
+    return render(request, "following.html", {
+        "user_obj": user_obj,
+        "users": following_users,
+    })
+
+
+@login_required
+def user_posts_view(request, username):
+    user_obj = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(user=user_obj).select_related("user").order_by("-created_at")
+
+    return render(request, "post.html", {
+        "user_obj": user_obj,
+        "posts": posts,
+    })
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Score, UserSubject
+
+
+
+
+from django.http import JsonResponse
+from django.urls import reverse
+from django.contrib.auth.models import User
+
+
+
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+
+# core/views.py
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.urls import reverse
+
+# core/views.py
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.urls import reverse
+
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+@login_required
+def update_profile(request):
+    if request.method == "POST":
+        profile = request.user.profile
+        # ... logic to handle the image upload ...
+        
+        if form.is_valid():
+            form.save()
+            # CHANGE THIS LINE:
+            return redirect('dashboard')  # Previously it likely said 'profile'
+            
+    # ... rest of the view ...
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+@login_required
+def api_search_users(request):
+    print("=== USING UPDATED API_SEARCH_USERS VIEW ===")  # ← Add this for confirmation
+
+    q = request.GET.get("q", "").strip()
+    if not q:
+        return JsonResponse({"results": []})
+
+    users = User.objects.filter(username__istartswith=q)\
+                       .exclude(username=request.user.username)[:10]
+
+    results = []
+    for u in users:
+        avatar_url = "/media/images/default_avatar.jpg"  # correct fallback
+
+        try:
+            profile = u.userprofile
+            if profile.profile_pic and profile.profile_pic.name:  # make sure it's really set
+                avatar_url = profile.profile_pic.url
+                print(f"[AVATAR SUCCESS] {u.username} → {avatar_url}")
+            else:
+                print(f"[AVATAR] {u.username} has profile but no picture uploaded")
+        except AttributeError as e:
+            print(f"[ERROR] No UserProfile for {u.username}: {e}")
+
+        results.append({
+            "username": u.username,
+            "avatar_url": avatar_url,
+            "profile_url": f"/profile/{u.username}/",
+        })
+
+    return JsonResponse({"results": results})
+
+# core/views.py
+# core/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+from .serializers import UserSearchSerializer
+
+User = get_user_model()
+
+class SearchUsersAPIView(APIView):
+    def get(self, request):
+        q = request.GET.get('q', '')
+        if q:
+            users = User.objects.filter(username__icontains=q)\
+                               .order_by('username')[:15]
+        else:
+            users = User.objects.none()
+
+        serializer = UserSearchSerializer(users, many=True)
+        return Response({"results": serializer.data})
+    
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from .models import Conversation  # adjust name if your model differs
+
+
+from django.db.models import Q
+from .models import Conversation
+
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.models import User
+from .models import Thread
+
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.models import User
+from .models import Thread
+
+@login_required
+def start_chat(request, username):
+    other_user = get_object_or_404(User, username=username)
+    
+    if other_user == request.user:
+        return redirect('dashboard')
+
+    # Look for a thread where BOTH users are participants
+    thread = Thread.objects.filter(participants=request.user).filter(participants=other_user).first()
+
+    # If it doesn't exist, create it
+    if not thread:
+        thread = Thread.objects.create()
+        thread.participants.add(request.user, other_user)
+
+    # Redirect to the dynamic ID (e.g., messages/t/1/)
+    return redirect('chat_thread', thread_id=thread.id)
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+@login_required
+def ai_coming_soon(request):
+    return render(request, "ai_coming_soon.html")
+
+import json
+from collections import defaultdict
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import UserSubject, Score
+
+
+
+@login_required
+def graph_view(request):
+    user_subjects = list(
+        UserSubject.objects.filter(user=request.user).values_list("name", flat=True)
+    )
+
+    scores = (
+        Score.objects.filter(user=request.user, subject__in=user_subjects)
+        .order_by("year", "created_at")
+    )
+
+    # labels will be years: ["2020","2021","2022"...]
+    labels = sorted({str(s.year) for s in scores})
+
+    # subject -> year -> percentage
+    subject_year_pct = defaultdict(dict)
+    for s in scores:
+        subject_year_pct[s.subject][str(s.year)] = float(s.percentage)
+
+    datasets = []
+    for subj in user_subjects:
+        data = [subject_year_pct.get(subj, {}).get(y, None) for y in labels]
+        datasets.append({
+            "label": subj,
+            "data": data,
+        })
+
+    context = {
+        "labels_json": json.dumps(labels),
+        "datasets_json": json.dumps(datasets),
+        "subjects": user_subjects,
+    }
+    return render(request, "graph.html", context)
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import Thread, Message
+
+
+from django.utils import timezone
+
+# core/views.py
+def chat_thread(request, thread_id):
+    # 1. Fetch the thread
+    thread = get_object_or_404(Thread, id=thread_id)
+    
+    # 2. Get the 'other' user. 
+    # This assumes your Thread model has a 'participants' ManyToMany field.
+    other_user = thread.participants.exclude(id=request.user.id).first()
+
+    # 3. CRITICAL: Add 'other' to your context dictionary
+    context = {
+        'thread': thread,
+        'other': other_user,  # This MUST be named 'other' to match your HTML
+        'messages': thread.messages.all(),
+        'status_text': 'Offline', # Or your logic for status
+    }
+    
+    return render(request, 'chat.html', context)
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST, require_GET
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Thread, Message
+import json
+
+@login_required
+@require_POST
+def chat_send_ajax(request, thread_id):
+    print("\n" + "="*60)
+    print("SEND AJAX HIT — user:", request.user.username)
+    print("POST data:", dict(request.POST))
+    print("FILES keys:", list(request.FILES.keys()))
+    print("FILES details:", {k: (f.name, f.size) for k, f in request.FILES.items()})
+
+    thread = get_object_or_404(Thread, id=thread_id, participants=request.user)
+
+    text = request.POST.get('text', '').strip()
+    image = request.FILES.get('image')
+    audio = request.FILES.get('audio')
+
+    has_content = bool(text or image or audio)
+    print(f"Content check → text: '{text[:30]}...', image: {bool(image)}, audio: {bool(audio)}, has_content: {has_content}")
+
+    if not has_content:
+        print("→ Rejected: no content")
+        return JsonResponse({"ok": False, "error": "No message content provided"})
+
+    try:
+        # Create the message using only fields that exist in your Message model
+        message = Message.objects.create(
+            thread=thread,
+            sender=request.user,
+            text=text if text else None,
+            image=image if image else None,
+            audio=audio if audio else None,
+            # Removed read_by_user1 and read_by_user2 because they don't exist in models.py
+        )
+        print(f"→ SUCCESS: Message created — ID={message.id}")
+        
+        return JsonResponse({
+            "ok": True,
+            "id": message.id
+        })
+    
+    except Exception as e:
+        print(f"→ SAVE FAILED: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
+
+@login_required
+@require_GET
+def chat_poll_ajax(request, thread_id):
+    print("\n" + "-"*40)
+    print("POLL HIT — user:", request.user.username, "thread:", thread_id)
+    
+    thread = get_object_or_404(Thread, id=thread_id, participants=request.user)
+    
+    after_str = request.GET.get('after', '0')
+    try:
+        after_id = int(after_str)
+    except:
+        after_id = 0
+    
+    print(f"Querying messages after ID: {after_id}")
+    
+    new_messages = thread.messages.filter(id__gt=after_id).order_by('id')
+    count = new_messages.count()
+    print(f"Found {count} new messages")
+    
+    data = []
+    for msg in new_messages:
+        entry = {
+            "id": msg.id,
+            "mine": msg.sender == request.user,
+            "text": msg.text,
+            "image_url": msg.image.url if msg.image else None,
+            "audio_url": msg.audio.url if msg.audio else None,
+            "time": msg.created_at.strftime("%H:%M"),
+        }
+        data.append(entry)
+        print(f"  → Adding msg {msg.id} | text={msg.text[:20]}... | mine={entry['mine']}")
+    
+    response = {"ok": True, "messages": data}
+    print("Returning:", json.dumps(response, indent=2, default=str))
+    
+    return JsonResponse(response)

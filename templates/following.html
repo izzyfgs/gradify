@@ -1,0 +1,65 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Following | @{{ user_obj.username }}</title>
+  <style>
+    :root{--border:#e2e8f0;--muted:#64748b;--danger:#ef4444;--soft:#f8fafc;}
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial;background:#fff;color:#0f172a;}
+    .top{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:20}
+    .brand{font-weight:950;}
+    .btn{border:1px solid var(--border);background:#fff;border-radius:12px;padding:10px 12px;font-weight:900;text-decoration:none;color:#0f172a}
+    .wrap{max-width:720px;margin:0 auto;padding:14px;}
+    .title{font-weight:950;margin:10px 0 12px;}
+    .card{border:1px solid var(--border);border-radius:18px;background:#fff;overflow:hidden}
+    .row{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid var(--border)}
+    .row:last-child{border-bottom:none;}
+    .dp{width:44px;height:44px;border-radius:50%;overflow:hidden;background:#e2e8f0;flex-shrink:0}
+    .dp img{width:100%;height:100%;object-fit:cover;display:block}
+    .mid{flex:1;min-width:0}
+    .name{font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .handle{font-size:12px;font-weight:850;color:var(--muted);margin-top:2px}
+    .unfollow{border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:var(--danger);border-radius:12px;padding:9px 12px;font-weight:950;cursor:pointer}
+    .empty{padding:18px;color:var(--muted);font-weight:900;background:var(--soft);border-radius:18px;border:1px dashed var(--border)}
+  </style>
+</head>
+<body>
+
+  <nav class="top">
+    <div class="brand">Following</div>
+    <a class="btn" href="{% url 'profile' user_obj.username %}">Back</a>
+  </nav>
+
+  <main class="wrap">
+    <div class="title">@{{ user_obj.username }} • Following</div>
+
+    <div class="card">
+      {% for u in users %}
+        <div class="row">
+          <a href="{% url 'profile' u.username %}" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;flex:1;min-width:0;">
+            <div class="dp">
+              <img src="{% if u.userprofile.profile_pic %}{{ u.userprofile.profile_pic.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}" alt="dp">
+            </div>
+            <div class="mid">
+              <div class="name">{{ u.username }}</div>
+              <div class="handle">@{{ u.username }}</div>
+            </div>
+          </a>
+
+          {% if request.user == user_obj and u != request.user %}
+            <form method="post" action="{% url 'follow_toggle' u.username %}" style="margin:0;">
+              {% csrf_token %}
+              <button class="unfollow" type="submit">Unfollow</button>
+            </form>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div class="empty">Not following anyone yet.</div>
+      {% endfor %}
+    </div>
+  </main>
+</body>
+</html>

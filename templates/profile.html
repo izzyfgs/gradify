@@ -585,6 +585,20 @@
       .btn{ padding: 9px 10px; border-radius: 13px; }
       .post.focus{ left: 10px; right: 10px; bottom: 10px; }
     }
+
+    /* Target the 'stat' class and remove the underline */
+.stat {
+    text-decoration: none;
+    color: inherit; /* Keeps the text color from changing to blue */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Optional: Add a hover effect so users still know it's a link */
+.stat:hover {
+    opacity: 0.8;
+}
   </style>
 </head>
 <body>
@@ -611,8 +625,16 @@
               <button type="submit" class="btn primary">Follow</button>
             {% endif %}
           </form>
-          <button class="btn" type="button" onclick="alert('Messages coming soon')">Message</button>
-        {% endif %}
+<!-- Message button: opens existing chat or creates new -->
+{% if request.user.is_authenticated and request.user != user_obj %}
+    {% if can_message %}
+        <a href="{% url 'start_chat' user_obj.username %}" class="btn btn-primary">
+            <i class="fas fa-envelope"></i> Message
+        </a>
+    {% endif %}
+{% endif %} ```
+{% endif %}
+
       </div>
     </div>
   </div>
@@ -659,20 +681,22 @@
             </div>
           </div>
 
-          <div class="stats">
-            <div class="stat">
-              <div class="num">{{ posts|length }}</div>
-              <div class="label">Posts</div>
-            </div>
-            <div class="stat">
-              <div class="num">{{ followers_count }}</div>
-              <div class="label">Followers</div>
-            </div>
-            <div class="stat">
-              <div class="num">{{ following_count }}</div>
-              <div class="label">Following</div>
-            </div>
-          </div>
+         <div class="stats">
+    <a href="{% url 'user_posts' user_obj.username %}" class="stat">
+        <div class="num">{{ posts|length }}</div>
+        <div class="label">Posts</div>
+    </a>
+
+    <a href="{% url 'followers_list' user_obj.username %}" class="stat">
+        <div class="num">{{ followers_count }}</div>
+        <div class="label">Followers</div>
+    </a>
+
+    <a href="{% url 'following_list' user_obj.username %}" class="stat">
+        <div class="num">{{ following_count }}</div>
+        <div class="label">Following</div>
+    </a>
+</div>
         </div>
       </div>
     </section>
@@ -706,6 +730,9 @@
         </div>
       </section>
     {% endif %}
+
+   
+
 
     <section class="feed">
       {% for p in posts %}

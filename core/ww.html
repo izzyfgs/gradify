@@ -1,0 +1,916 @@
+dashboard 
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gradify | Dashboard</title>
+
+  <style>
+    :root{
+      --purple-grad: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      --purple: #6d28d9;
+      --ink: #0f172a;
+      --border: #e2e8f0;
+      --muted: #64748b;
+      --soft: #f8fafc;
+      --card-border: #f1f5f9;
+      --danger: #ef4444;
+      --shadow: 0 14px 35px rgba(2,6,23,0.08);
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{
+      margin:0; padding:0; height:100%;
+      font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      background:#ffffff; color:var(--ink);
+      overflow-x:hidden;
+    }
+
+    /* ===== APP LAYOUT ===== */
+    .app{ display:flex; min-height:100vh; width:100%; }
+
+    /* ===== TOPBAR (FIXED ON MOBILE) ===== */
+    .topbar{
+      display:none;
+      position: fixed;
+      top:0; left:0; right:0;
+      z-index: 1400;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .topbar-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+
+    .hamburger{
+      width:42px; height:42px;
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:950;
+      cursor:pointer;
+      user-select:none;
+    }
+    .hamburger:active{ transform: scale(0.98); }
+
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:950;
+      letter-spacing:-0.5px;
+      white-space:nowrap;
+      user-select:none;
+    }
+    .brand .logo-icon{
+      width:38px; height:38px;
+      border-radius:12px;
+      background: var(--purple-grad);
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:950;
+      font-size:18px;
+      box-shadow: 0 10px 25px rgba(109,40,217,0.18);
+    }
+    .brand .logo-text{
+      font-size:16px;
+      font-weight:950;
+    }
+
+    .topbar-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-shrink:0;
+    }
+
+    /* ===== SMALL SEARCH (NO PLACEHOLDER) ===== */
+    .search-wrap{
+      position:relative;
+      width: 180px;
+      max-width: 45vw;
+    }
+    .search-input{
+      width:100%;
+      height:42px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      outline:none;
+      padding: 0 12px;
+      font-weight:850;
+      font-size:13px;
+      background:#fff;
+    }
+    .search-input:focus{
+      border-color: var(--purple);
+      box-shadow: 0 0 0 4px rgba(109,40,217,0.08);
+    }
+
+    .search-dd{
+      position:absolute;
+      top: 46px;
+      left:0;
+      right:0;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow: 0 18px 55px rgba(2,6,23,0.14);
+      overflow:hidden;
+      display:none;
+      z-index: 1600;
+      max-height: 280px;
+      overflow:auto;
+    }
+    .search-dd.show{ display:block; }
+
+    .search-item{
+      padding: 10px 12px;
+      font-weight:900;
+      font-size:13px;
+      cursor:pointer;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .search-item:hover{ background: var(--soft); }
+    .search-item .pill{
+      font-weight:950;
+      color: var(--purple);
+    }
+
+    /* ===== NOTIFICATION BELL ===== */
+    .bell{
+      width:42px; height:42px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      position:relative;
+      user-select:none;
+    }
+    .bell svg{ width:18px; height:18px; }
+    .badge{
+      position:absolute;
+      top:-6px; right:-6px;
+      min-width: 18px;
+      height:18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: var(--danger);
+      color:#fff;
+      font-size:11px;
+      font-weight:950;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:2px solid #fff;
+    }
+
+    /* ===== OVERLAY (MOBILE DRAWER) ===== */
+    .overlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      background: rgba(2,6,23,0.38);
+      z-index: 1300;
+    }
+    .overlay.show{ display:block; }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar{
+      width:320px;
+      height:100vh;
+      background:#fff;
+      border-right:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+      padding: 22px;
+      position:fixed;
+      left:0; top:0;
+      z-index: 1350;
+      overflow-y:auto;
+      overflow-x:hidden;
+      transition: transform .25s ease;
+      -ms-overflow-style: none;     /* IE/Edge */
+      scrollbar-width: none;        /* Firefox */
+    }
+    .sidebar::-webkit-scrollbar{ width:0; height:0; } /* Chrome/Safari => removes the vertical line */
+
+    .logo-container{
+      display:flex; align-items:center; gap:12px;
+      margin-bottom:18px;
+    }
+    .logo-container .logo-icon{
+      width:48px; height:48px;
+      background: var(--purple-grad);
+      border-radius:16px;
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-weight:950; font-size:22px;
+      box-shadow: 0 14px 30px rgba(109,40,217,0.20);
+      user-select:none;
+    }
+    .logo-container .logo-text{
+      font-size:26px;
+      font-weight:950;
+      letter-spacing:-0.6px;
+      line-height:1;
+    }
+
+    /* Profile mini card */
+    .profile-card{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      background:#fbfbff;
+      padding:14px;
+      border-radius:20px;
+      border:1px solid #e9d5ff;
+      position:relative;
+      margin-bottom:16px;
+      box-shadow: 0 12px 28px rgba(109,40,217,0.08);
+    }
+
+    .avatar-upload{
+      width:52px; height:52px;
+      border-radius:50%;
+      border:2px solid var(--border);
+      background:#f1f5f9;
+      padding:0;
+      position:relative;
+      overflow:hidden;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+    }
+    .avatar-upload img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .avatar-overlay{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:22px;
+      font-weight:950;
+      color:#fff;
+      background: rgba(2,6,23,0.35);
+      opacity:0;
+      transition: .2s ease;
+      pointer-events:none;
+    }
+    .avatar-upload:hover .avatar-overlay{ opacity:1; }
+
+    .user-info{
+      flex:1;
+      min-width:0;
+    }
+    .user-info .username{
+      font-weight:950;
+      font-size:14px;
+      display:block;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .user-info .avg-text{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:850;
+      margin-top:2px;
+    }
+
+    .three-dots{
+      cursor:pointer;
+      font-size:20px;
+      padding:8px 10px;
+      border-radius:12px;
+      user-select:none;
+      line-height:1;
+      flex-shrink:0;
+    }
+    .three-dots:hover{ background:#f1f5f9; }
+
+    .dropdown-menu{
+      position:absolute;
+      right:12px;
+      top:64px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow: 0 18px 55px rgba(2,6,23,0.18);
+      display:none;
+      z-index: 2000;
+      min-width:170px;
+      overflow:hidden;
+    }
+    .dropdown-menu.show{ display:block; }
+    .dropdown-menu a{
+      display:block;
+      padding:12px 14px;
+      text-decoration:none;
+      color:var(--ink);
+      font-size:13px;
+      font-weight:950;
+      cursor:pointer;
+    }
+    .dropdown-menu a:hover{ background: var(--soft); }
+
+    .menu-section{ margin-top:10px; }
+    .section-trigger{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px 8px;
+      font-weight:950;
+      font-size:12px;
+      color: var(--muted);
+      user-select:none;
+      text-transform:uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .nav-list{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-top:6px;
+    }
+
+    .nav-item{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:12px 12px;
+      border-radius:14px;
+      text-decoration:none;
+      color: var(--ink);
+      font-weight:950;
+      font-size:14px;
+      transition: all .2s ease;
+      border-left: 4px solid transparent;
+    }
+    .nav-item:hover{
+      background: var(--soft);
+      border-left-color: var(--purple);
+      color: var(--purple);
+      padding-left: 16px;
+    }
+    .nav-item svg{
+      width:18px; height:18px;
+      flex-shrink:0;
+      fill: currentColor;
+      opacity: 0.95;
+    }
+
+    .nav-item.logout{
+      color: var(--danger);
+    }
+    .nav-item.logout:hover{
+      background: rgba(239,68,68,0.10);
+      border-left-color: var(--danger);
+      color: var(--danger);
+    }
+
+    /* ===== MAIN BODY ===== */
+    .main-body{
+      flex:1;
+      margin-left:320px;
+      background:#fff;
+      padding: 34px 48px 48px;
+      min-height:100vh;
+    }
+
+    .welcome-text{
+      font-size:40px;
+      font-weight:950;
+      margin:0;
+      letter-spacing:-1px;
+      line-height:1.1;
+    }
+    .welcome-text .uname{
+      background: var(--purple-grad);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      font-weight:950;
+    }
+
+    .motivation-line{
+      margin-top:10px;
+      font-size:14px;
+      color:#475569;
+      font-weight:750;
+      border-top:1px solid rgba(2,6,23,0.06);
+      padding-top:10px;
+      display:block;
+      max-width:780px;
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap:16px;
+      margin-top:22px;
+    }
+
+    .stat-card{
+      background:#fff;
+      padding: 20px;
+      border-radius:22px;
+      border:2px solid var(--card-border);
+      box-shadow: 0 6px 20px rgba(2,6,23,0.03);
+      transition: all .25s ease;
+    }
+    .stat-card:hover{
+      transform: translateY(-4px);
+      border-color: var(--purple);
+      box-shadow: 0 16px 28px rgba(109,40,217,0.10);
+    }
+    .stat-label{
+      color:#111827;
+      font-weight:950;
+      font-size:12px;
+      margin-bottom:10px;
+      text-transform:uppercase;
+      letter-spacing:0.8px;
+    }
+    .stat-value{
+      display:block;
+      font-size:46px;
+      font-weight:950;
+      color: var(--purple);
+      line-height:1;
+    }
+    .stat-sub{
+      margin-top:10px;
+      font-size:13px;
+      font-weight:850;
+      color:var(--muted);
+    }
+
+    .subject-section{ margin-top:24px; }
+    .subject-title{
+      font-weight:950;
+      font-size:20px;
+      margin:0;
+      letter-spacing:-0.4px;
+    }
+    .subject-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    .subject-card{
+      background:#fcfcfc;
+      padding:16px;
+      border-radius:18px;
+      border:2px solid var(--card-border);
+      font-weight:950;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      transition: all .2s ease;
+    }
+    .subject-card:hover{
+      border-color: var(--purple);
+      background:#fdfcff;
+      transform: translateY(-2px);
+    }
+    .subject-card .pct{ color: var(--purple); }
+
+    .empty-subjects{
+      margin-top:12px;
+      padding:16px;
+      border-radius:18px;
+      border:1px dashed #dbeafe;
+      background: var(--soft);
+      color:#334155;
+      font-weight:900;
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 920px){
+      .topbar{ display:flex; }
+      body{ padding-top: 60px; }
+
+      .sidebar{
+        transform: translateX(-110%);
+        width: 86%;
+        max-width: 340px;
+        box-shadow: 0 18px 60px rgba(0,0,0,0.25);
+      }
+      .sidebar.open{ transform: translateX(0); }
+
+      .main-body{
+        margin-left:0;
+        padding: 18px 14px 36px;
+      }
+      .logo-container{ display:none; } /* topbar already shows brand */
+      .welcome-text{ font-size: 28px; }
+      .stat-value{ font-size: 40px; }
+      .search-wrap{ width: 155px; }
+    }
+
+    @media (max-width: 420px){
+      .search-wrap{ width: 130px; }
+      .brand .logo-text{ display:none; } /* keep tight on tiny screens */
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- MOBILE TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <!-- HAMBURGER LEFT ✅ -->
+      <div class="hamburger" id="menuBtn" aria-label="Open menu">☰</div>
+
+      <div class="brand">
+        <div class="logo-icon">G</div>
+        <div class="logo-text">Gradify</div>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <!-- Small search (no placeholder) -->
+      <div class="search-wrap">
+        <input class="search-input" id="userSearch" type="text" autocomplete="off" />
+        <div class="search-dd" id="searchDD"></div>
+      </div>
+
+      <!-- Bell -->
+      <div class="bell" id="bellBtn" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 7h18s-3 0-3-7"/>
+          <path d="M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
+
+        {% if notif_count and notif_count|add:0 > 0 %}
+          <div class="badge">{{ notif_count }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay"></div>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="logo-container">
+        <div class="logo-icon">G</div>
+        <div class="logo-text">Gradify</div>
+      </div>
+
+      <!-- Profile mini card (DB avatar upload + preview + auto submit) -->
+      <div class="profile-card">
+
+        <form id="dashAvatarForm" method="post" action="{% url 'dashboard_avatar_upload' %}" enctype="multipart/form-data" style="margin:0;">
+          {% csrf_token %}
+
+          <button type="button" class="avatar-upload" id="avatarBtn" title="Change profile picture">
+            <img
+              id="dashAvatarImg"
+              src="{% if request.user.userprofile.profile_pic %}{{ request.user.userprofile.profile_pic.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}"
+              alt="Avatar"
+            />
+            <span class="avatar-overlay" id="avatarOverlay">+</span>
+          </button>
+
+          <input type="file" name="profile_pic" id="dashFileInput" hidden accept="image/*" />
+        </form>
+
+        <div class="user-info">
+          <span class="username">{{ request.user.username|default:"Student" }}</span>
+          <span class="avg-text">Average: {{ avg_percent|default:0 }}%</span>
+        </div>
+
+        <div class="three-dots" id="dotsBtn">⋮</div>
+        <div class="dropdown-menu" id="profileDropdown">
+          <a href="javascript:void(0)" id="editBtn">Edit Avatar</a>
+        </div>
+      </div>
+
+      <!-- MAIN MENU -->
+      <div class="menu-section">
+        <div class="section-trigger">Main Menu</div>
+        <div class="nav-list">
+
+          <a href="{% url 'profile' request.user.username %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.76 0 5-2.24 5-5S14.76 2 12 2 7 4.24 7 7s2.24 5 5 5zm0 2c-4.33 0-8 2.17-8 5v3h16v-3c0-2.83-3.67-5-8-5z"/></svg>
+            Profile
+          </a>
+
+          <a href="{% url 'messages_inbox' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 3 4-3h4c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/></svg>
+            Messages
+          </a>
+
+          <a href="{% url 'wallet' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M21 7H3V5h16l2 2zm0 2v10c0 1.1-.9 2-2 2H3c-1.1 0-2-.9-2-2V9h20zm-5 6a2 2 0 100-4 2 2 0 000 4z"/></svg>
+            Wallet
+          </a>
+
+          <a href="#" class="nav-item" id="addNewBtn">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Add New
+          </a>
+
+          <a href="{% url 'view_scores' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            View Scores
+          </a>
+
+        </div>
+      </div>
+
+      <!-- PERFORMANCE -->
+      <div class="menu-section">
+        <div class="section-trigger">Performance</div>
+        <div class="nav-list">
+
+          <a href="{% url 'graph' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M3 3v18h18v-2H5V3H3zm6 12h2V9H9v6zm4 0h2V5h-2v10zm4 0h2v-8h-2v8z"/></svg>
+            Graph
+          </a>
+
+          <a href="{% url 'settings' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.49 7.49 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.42 7.42 0 00-1.62-.94l-.36-2.54A.5.5 0 0013.9 1h-3.8a.5.5 0 00-.49.42l-.36 2.54c-.57.23-1.11.54-1.62.94l-2.39-.96a.5.5 0 00-.6.22L2.72 7.98a.5.5 0 00.12.64l2.03 1.58a7.49 7.49 0 000 1.88L2.84 14.52a.5.5 0 00-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.5.4 1.05.71 1.62.94l.36 2.54c.04.24.25.42.49.42h3.8c.24 0 .45-.18.49-.42l.36-2.54c.57-.23 1.11-.54 1.62-.94l2.39.96c.22.09.47 0 .6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5z"/></svg>
+            Settings
+          </a>
+
+          <a href="{% url 'help_support' %}" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            Help & Support
+          </a>
+
+          <a href="{% url 'logout' %}" class="nav-item logout">
+            <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
+            Logout
+          </a>
+
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-body">
+      <h1 class="welcome-text">
+        Welcome back, <span class="uname">{{ request.user.username|default:"Student" }}</span>.
+      </h1>
+
+      <span class="motivation-line">
+        {% if subjects %}
+          Your subjects are set — consistency is the cheat code. Let’s keep going.
+        {% else %}
+          You haven’t chosen your subjects yet. Tap <strong>Add New</strong> to set them up.
+        {% endif %}
+      </span>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Sessions</span>
+          <span class="stat-value">{{ total_sessions|default:0 }}</span>
+          <div class="stat-sub">{{ total_sessions|default:0 }} sessions</div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Study Streak</span>
+          <span class="stat-value">{{ streak_days|default:0 }}</span>
+          <div class="stat-sub">{{ streak_days|default:0 }} days</div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-label">Best Subject</span>
+          <span class="stat-value" style="font-size:30px;">
+            {{ best_subject|default:"—" }}
+          </span>
+          <div class="stat-sub">Highest performance so far</div>
+        </div>
+      </div>
+
+      {% if subjects %}
+        <div class="subject-section">
+          <h2 class="subject-title">Subject Performance</h2>
+          <div class="subject-grid">
+            {% for s in subjects %}
+              <div class="subject-card">
+                <span>{{ s.name }}</span>
+                <span class="pct">{{ s.percent }}%</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="empty-subjects">
+          No subjects yet. Tap <strong>Add New</strong> to choose your subjects.
+        </div>
+      {% endif %}
+    </main>
+  </div>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+
+    // ===== Drawer open/close =====
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const menuBtn = document.getElementById("menuBtn");
+
+    function openDrawer(){
+      sidebar.classList.add("open");
+      overlay.classList.add("show");
+      document.body.style.overflow = "hidden";
+    }
+    function closeDrawer(){
+      sidebar.classList.remove("open");
+      overlay.classList.remove("show");
+      document.body.style.overflow = "";
+    }
+
+    if(menuBtn){
+      menuBtn.addEventListener("click", () => {
+        if(sidebar.classList.contains("open")) closeDrawer();
+        else openDrawer();
+      });
+    }
+    if(overlay) overlay.addEventListener("click", closeDrawer);
+
+    // Close drawer when clicking a sidebar link (mobile)
+    document.querySelectorAll(".sidebar a.nav-item").forEach(a => {
+      a.addEventListener("click", () => closeDrawer());
+    });
+
+    // ===== Profile dropdown =====
+    const dotsBtn = document.getElementById("dotsBtn");
+    const dropdown = document.getElementById("profileDropdown");
+    if(dotsBtn && dropdown){
+      dotsBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle("show");
+      });
+      document.addEventListener("click", () => dropdown.classList.remove("show"));
+    }
+
+    // ===== Add New behavior (setup subjects first, else add score) =====
+    const hasSubjects = {{ subjects|length|default:0 }};
+    const addNewBtn = document.getElementById("addNewBtn");
+    if(addNewBtn){
+      addNewBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (!hasSubjects) window.location.href = "{% url 'setup_subjects' %}";
+        else window.location.href = "{% url 'add_score' %}";
+      });
+    }
+
+    // ===== Avatar upload (Gallery open + preview + auto-submit) =====
+    const avatarBtn = document.getElementById("avatarBtn");
+    const fileInput = document.getElementById("dashFileInput");
+    const form = document.getElementById("dashAvatarForm");
+    const img = document.getElementById("dashAvatarImg");
+    const editBtn = document.getElementById("editBtn");
+
+    function openPicker(){
+      if(fileInput) fileInput.click();
+    }
+
+    if(avatarBtn && fileInput && form){
+      avatarBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        openPicker();
+      });
+    }
+
+    if(editBtn){
+      editBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if(dropdown) dropdown.classList.remove("show");
+        openPicker();
+      });
+    }
+
+    if(fileInput && form){
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files && fileInput.files[0];
+        if(!file) return;
+
+        // Preview instantly
+        if(img){
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            img.src = ev.target.result;
+            setTimeout(() => form.submit(), 150);
+          };
+          reader.readAsDataURL(file);
+        }else{
+          form.submit();
+        }
+      });
+    }
+
+    // ===== User Search (autocomplete) =====
+    const searchInput = document.getElementById("userSearch");
+    const searchDD = document.getElementById("searchDD");
+    let t = null;
+
+    function clearDD(){
+      if(!searchDD) return;
+      searchDD.innerHTML = "";
+      searchDD.classList.remove("show");
+    }
+
+    function renderUsers(users){
+      if(!searchDD) return;
+      searchDD.innerHTML = "";
+
+      if(!users || users.length === 0){
+        clearDD();
+        return;
+      }
+
+      users.slice(0, 8).forEach(u => {
+        const row = document.createElement("div");
+        row.className = "search-item";
+        row.innerHTML = `<span class="pill">@</span><span>${u}</span>`;
+        row.addEventListener("click", () => {
+          window.location.href = "{% url 'profile' '___USER___' %}".replace("___USER___", u);
+        });
+        searchDD.appendChild(row);
+      });
+
+      searchDD.classList.add("show");
+    }
+
+    async function fetchUsers(q){
+      try{
+        const url = "{% url 'user_search' %}" + "?q=" + encodeURIComponent(q);
+        const res = await fetch(url, {headers: {"X-Requested-With":"XMLHttpRequest"}});
+        if(!res.ok) return [];
+        const data = await res.json();
+        return data.users || [];
+      }catch(err){
+        return [];
+      }
+    }
+
+    if(searchInput){
+      searchInput.addEventListener("input", () => {
+        const q = searchInput.value.trim();
+        if(t) clearTimeout(t);
+
+        if(q.length < 1){
+          clearDD();
+          return;
+        }
+
+        t = setTimeout(async () => {
+          const users = await fetchUsers(q);
+          renderUsers(users);
+        }, 180);
+      });
+
+      document.addEventListener("click", (e) => {
+        if(!searchDD) return;
+        if(e.target === searchInput || searchDD.contains(e.target)) return;
+        clearDD();
+      });
+    }
+
+    // Bell (placeholder)
+    const bellBtn = document.getElementById("bellBtn");
+    if(bellBtn){
+      bellBtn.addEventListener("click", () => {
+        alert("Notifications page coming next.");
+      });
+    }
+
+  });
+  </script>
+
+</body>
+</html>

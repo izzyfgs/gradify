@@ -1077,3 +1077,51 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+      <!-- Profile mini card -->
+      <div class="profile-card">
+        <form id="dashAvatarForm" 
+              method="post" 
+              action="{% url 'edit_profile' %}" 
+              enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="avatar-wrapper">
+            <label for="dashFileInput" class="avatar-label">
+              <div class="avatar-upload">
+                <span class="avatar-overlay">+</span>
+                <img id="dashAvatarImg" 
+                     src="{% if request.user.userprofile.profile_pic %}{{ request.user.userprofile.profile_pic.url }}{% else %}{% static 'default_avatar.png' %}{% endif %}" 
+                     alt="Profile picture" />
+              </div>
+            </label>
+
+            <input type="file" 
+                   name="profile_pic" 
+                   id="dashFileInput" 
+                   accept="image/*" 
+                   hidden />
+          </div>
+        </form>
+
+        <div class="user-info">
+          <span class="username">{{ request.user.username }}</span>
+          <span class="avg-text">Average: {{ avg_percent }}%</span>
+        </div>
+
+        <button class="three-dots" id="dotsBtn" type="button">⋮</button>
+
+        <div class="dropdown-menu" id="profileDropdown">
+          <button type="button" id="editBtn">Edit Avatar</button>
+          <button type="button" id="deleteBtn" class="danger">Delete Avatar</button>
+        </div>
+      </div>

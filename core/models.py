@@ -61,27 +61,35 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+from django.db import models
+from django.contrib.auth.models import User
+
+from django.db import models
+from django.contrib.auth.models import User
+
+from django.db import models
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+# ✅ FINAL USER PROFILE
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='userprofile')
     
-    # Missing field causing the AttributeError:
-    last_login_date = models.DateField(null=True, blank=True)
-    streak_count = models.IntegerField(default=0) # Often used with login signals
-    
+    # Visuals - Points to the file we moved to static/images/
     profile_pic = models.ImageField(
         upload_to='profile_pics/', 
         blank=True, 
         null=True,
-        default='default_avatar.png'
+        default='images/default_avatar.jpg' 
     )
+    cover_pic = models.ImageField(upload_to='cover_pics/', blank=True, null=True)
     
-    cover_pic = models.ImageField(
-        upload_to='cover_pics/', 
-        blank=True, 
-        null=True
-    )
-    
+    # Stats & Bio
+    streak = models.IntegerField(default=0) 
     bio = models.TextField(max_length=150, blank=True)
+    last_login_date = models.DateField(null=True, blank=True)
+    last_password_change = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username}'s profile"
@@ -151,6 +159,7 @@ class ChatMessage(models.Model):
         return f"{self.user.username} [{self.sender}] {self.created_at:%Y-%m-%d %H:%M}"
     
 
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -186,7 +195,12 @@ class ChatSession(models.Model):
     def __str__(self):
         return f"ChatSession({self.user.username})"
 
-
+# In models.py, inside Conversation class
+@staticmethod
+def get_or_create_between(user_a, user_b):
+    u1, u2 = (user_a, user_b) if user_a.id < user_b.id else (user_b, user_a)
+    conv, created = Conversation.objects.get_or_create(user1=u1, user2=u2)
+    return conv, created
 class ChatMessage(models.Model):
     ROLE_CHOICES = (
         ("user", "User"),
@@ -329,13 +343,6 @@ class Comment(models.Model):
         return f"{self.user.username} commented"
 
 
-# ✅ NOTIFICATIONS
-class Notification(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
-    message = models.CharField(max_length=200)
-    link = models.CharField(max_length=200, blank=True)
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Notification for {self.user.username}"
@@ -442,41 +449,10 @@ class Conversation(models.Model):
         return self.user2 if self.user1_id == me.id else self.user1
 
 
-class Message(models.Model):
-    conversation = models.ForeignKey(Conversation, related_name="messages", on_delete=models.CASCADE)
-    sender = models.ForeignKey(User, related_name="sent_messages", on_delete=models.CASCADE)
-    text = models.TextField(max_length=2000, blank=True)           # ← allow blank
-    created_at = models.DateTimeField(auto_now_add=True)
-    image = models.ImageField(upload_to='chat_images/', null=True, blank=True)
-    audio = models.FileField(upload_to='chat_audio/', null=True, blank=True)   # ← ADD THIS
-
-    read_by_user1 = models.BooleanField(default=False)
-    read_by_user2 = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ["created_at"]
 
 from django.db import models
 from django.contrib.auth.models import User
 
-class UserSettings(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="settings")
-    
-    # Notifications
-    notify_likes = models.BooleanField(default=True)
-    notify_comments = models.BooleanField(default=True)
-    notify_follows = models.BooleanField(default=True)
-
-    # Appearance
-    dark_mode = models.BooleanField(default=False) # <--- Ensure this is here
-    compact_mode = models.BooleanField(default=False)
-    
-    # Privacy
-    public_profile = models.BooleanField(default=True)
-    show_online_status = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"Settings for {self.user.username}"
     
 from django.db import models
 from django.contrib.auth.models import User
@@ -498,24 +474,190 @@ class UserMute(models.Model):
     class Meta:
         unique_together = ("muter", "muted")
 
-class UserSettings(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-    notify_likes = models.BooleanField(default=True)
-    notify_comments = models.BooleanField(default=True)
-    notify_follows = models.BooleanField(default=True)
 
-    dark_mode = models.BooleanField(default=False)
-    # ...anything else
+from django.db import models
+from django.conf import settings
+
+from django.db import models
+from django.conf import settings
+
+class RewardsClaim(models.Model):
+    REWARD_TYPES = (
+        ("sessions", "Sessions Milestone"),
+        ("streak", "Streak Milestone"),
+    )
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    reward_type = models.CharField(max_length=20, choices=REWARD_TYPES)
+    milestone = models.PositiveIntegerField()  # e.g. 10, 20, 30...
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "reward_type", "milestone")
+
+    def __str__(self):
+        return f"{self.user.username} {self.reward_type} {self.milestone} -> {self.amount}"
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+@receiver(post_save, sender=Follow)
+def create_follow_notification(sender, instance, created, **kwargs):
+    if created:  # only when a new follow is created
+        Notification.objects.create(
+            user=instance.following,  # the person being followed
+            message=f"{instance.follower.username} started following you!",
+            link=f"/profile/{instance.follower.username}/",
+            is_read=False
+        )
+
+from django.db import models
+from django.conf import settings
 
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")  # receiver
-    actor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="actions")      # who did it
-    notif_type = models.CharField(max_length=30)  # like/comment/follow
-    post = models.ForeignKey("Post", null=True, blank=True, on_delete=models.CASCADE)
-    comment = models.ForeignKey("Comment", null=True, blank=True, on_delete=models.CASCADE)
-
+    # The person receiving the notification
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
+    
+    # The person who triggered the notification (e.g., Joshua)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    
+    # Useful for grouping/filtering (e.g., 'follow', 'like', 'comment')
+    notification_type = models.CharField(max_length=20, default='info')
+    
+    message = models.CharField(max_length=200)
+    link = models.CharField(max_length=200, blank=True)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
 
+    def __str__(self):
+        return f"{self.notification_type} for {self.user.username}"
+
+
+
+
+# --
+# --- Consolidated Settings Model ---
+class UserSettings(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="settings")
+    notify_likes = models.BooleanField(default=True)
+    notify_comments = models.BooleanField(default=True)
+    notify_follows = models.BooleanField(default=True)
+    dark_mode = models.BooleanField(default=False)
+    compact_mode = models.BooleanField(default=False)
+    public_profile = models.BooleanField(default=True)
+    show_online_status = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Settings for {self.user.username}"
+    
+from django.db import models
+from django.contrib.auth.models import User
+# core/models.py
+
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+
+User = get_user_model()
+
+
+class Thread(models.Model):
+    """
+    A private conversation between 2 (or eventually more) users.
+    Uses ManyToManyField for flexibility.
+    """
+    participants = models.ManyToManyField(
+        User,
+        related_name='threads',
+        through='ThreadParticipant'  # optional but recommended for extra data
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active  = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "Conversation"
+        verbose_name_plural = "Conversations"
+
+    def __str__(self):
+        if not self.pk:
+            return "New Conversation"
+        usernames = ", ".join(self.participants.values_list('username', flat=True))
+        return f"Chat: {usernames}"
+
+    def other_participant(self, user):
+        """Returns the other user in a 1-on-1 thread"""
+        other = self.participants.exclude(pk=user.pk).first()
+        if other is None:
+            raise ValueError("User is not part of this thread")
+        return other
+
+    @property
+    def is_group(self):
+        return self.participants.count() > 2
+
+
+# Optional – but very useful if you want to store per-user thread data later
+class ThreadParticipant(models.Model):
+    thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
+    user   = models.ForeignKey(User, on_delete=models.CASCADE)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    last_read_at = models.DateTimeField(null=True, blank=True)  # per-user last read time
+
+    class Meta:
+        unique_together = [['thread', 'user']]
+        ordering = ['joined_at']
+
+    def __str__(self):
+        return f"{self.user} in {self.thread}"
+
+
+class Message(models.Model):
+    thread    = models.ForeignKey(Thread, on_delete=models.CASCADE, related_name='messages')
+    sender    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    text      = models.TextField(blank=True, null=True)
+    image     = models.ImageField(upload_to='chat_images/', blank=True, null=True)
+    audio     = models.FileField(upload_to='chat_audio/', blank=True, null=True)
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    # Simple & flexible read tracking (works for 1:1 and groups)
+    read_by = models.ManyToManyField(
+        User,
+        related_name='read_messages',
+        blank=True,
+        through='MessageRead'
+    )
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['thread', 'created_at']),
+        ]
+
+    def __str__(self):
+        content = self.text[:30] if self.text else "[media]"
+        return f"{self.sender.username}: {content}"
+
+    def is_read_by(self, user):
+        return self.read_by.filter(pk=user.pk).exists()
+
+    def mark_as_read(self, user):
+        """Mark this message as read by the given user"""
+        self.read_by.add(user)
+
+
+# Optional intermediate table if you want read timestamps
+class MessageRead(models.Model):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    user    = models.ForeignKey(User, on_delete=models.CASCADE)
+    read_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = [['message', 'user']]

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'rest_framework',
 
 
 
@@ -126,17 +127,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
 # settings.py
-LOGIN_URL = 'login'
 
-import os # Make sure 'import os' is at the top of the file, or add it here
+# --- Static Files (CSS, JS, Default Images) ---
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-LOGIN_REDIRECT_URL = 'dashboard'
-
-
+# --- Media Files (User Uploaded Profile Pictures) ---
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

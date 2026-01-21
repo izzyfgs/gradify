@@ -2,6 +2,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .views import SearchUsersAPIView
 
 urlpatterns = [
     # ---------- Dashboard & Auth ----------
@@ -48,17 +49,11 @@ urlpatterns = [
     path("notifications/", views.notifications_view, name="notifications"),
     path("notifications/mark-read/", views.notifications_mark_read_view, name="notifications_mark_read"),
     path("help-support/", views.help_support_view, name="help_support"),
-    path('ai-chat/', views.ai_chat_view, name='ai_chat'),
+    path("ai-coming-soon/", views.ai_coming_soon, name="ai_coming_soon"),
+
     path('ai-chat/send/', views.ai_chat_send, name='ai_chat_send'),
     path("ai-chat/clear/", views.ai_chat_clear, name="ai_chat_clear"),
 
-    # ---------- Messaging ----------
-    path("messages/", views.messages_inbox, name="messages_inbox"),
-    path("messages/search/", views.user_search_ajax, name="user_search_ajax"),
-    path("messages/start/<str:username>/", views.start_chat, name="start_chat"),
-    path("messages/t/<int:conv_id>/", views.chat_thread, name="chat_thread"),
-    path("messages/t/<int:conv_id>/send/", views.chat_send_ajax, name="chat_send_ajax"),
-    path("messages/t/<int:conv_id>/poll/", views.chat_poll_ajax, name="chat_poll_ajax"),
 
     # ---------- Settings & Security ----------
     path("settings/", views.settings_view, name="settings"),
@@ -66,10 +61,29 @@ urlpatterns = [
     path("settings/export/", views.export_data_view, name="export_data"),
     path("settings/deactivate/", views.deactivate_account_view, name="deactivate_account"),
     # We point this to edit_profile_view instead of a missing function
-path("dashboard/avatar/", views.edit_profile_view, name="dashboard_avatar_upload"),
+    path("dashboard/avatar/", views.edit_profile_view, name="dashboard_avatar_upload"),
 
 
     # ---------- Password flow ----------
     path("password/change/", auth_views.PasswordChangeView.as_view(template_name="password_change.html"), name="password_change"),
     path("password/change/done/", auth_views.PasswordChangeDoneView.as_view(template_name="password_change_done.html"), name="password_change_done"),
+    path("search/", views.search_view, name="search"),
+    path("api/search-users/", views.api_search_users, name="api_search_users"),
+    path("change-password/", views.change_password_view, name="change_password"),
+    path("rewards/", views.rewards_view, name="rewards"),
+    path("rewards/claim/", views.claim_reward, name="claim_reward"),
+    path("notifications/", views.notifications_view, name="notifications"),
+    path("profile/<str:username>/followers/", views.followers_list_view, name="followers_list"),
+    path("profile/<str:username>/following/", views.following_list_view, name="following_list"),
+    path("profile/<str:username>/posts/", views.user_posts_view, name="user_posts"),
+    
+# ---------- Messaging (Cleaned) ----------
+# ---------- Messaging (Cleaned) ----------
+path("messages/", views.messages_inbox, name="messages_inbox"),
+path("messages/search/", views.user_search_ajax, name="user_search_ajax"),
+path("messages/start/<str:username>/", views.start_chat, name="start_chat"),
+path("messages/t/<int:thread_id>/", views.chat_thread, name="chat_thread"),
+path("messages/t/<int:thread_id>/send/", views.chat_send_ajax, name="chat_send_ajax"),
+path("messages/t/<int:thread_id>/poll/", views.chat_poll_ajax, name="chat_poll_ajax"),
+path('chat/start/<str:username>/', views.start_chat, name='start_chat'),
 ]

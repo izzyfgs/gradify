@@ -1,0 +1,43 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Posts | @{{ user_obj.username }}</title>
+  <style>
+    :root{--border:#e2e8f0;--muted:#64748b;--soft:#f8fafc;}
+    *{box-sizing:border-box;}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial;background:#fff;color:#0f172a;}
+    .top{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;z-index:20}
+    .brand{font-weight:950;}
+    .btn{border:1px solid var(--border);background:#fff;border-radius:12px;padding:10px 12px;font-weight:900;text-decoration:none;color:#0f172a}
+    .wrap{max-width:720px;margin:0 auto;padding:14px;}
+    .title{font-weight:950;margin:10px 0 12px;}
+    .post{border:1px solid var(--border);border-radius:18px;background:#fff;padding:12px;margin-bottom:12px}
+    .meta{font-size:12px;color:var(--muted);font-weight:850;margin-bottom:8px}
+    .txt{font-weight:750;white-space:pre-wrap;word-break:break-word}
+    .empty{padding:18px;color:var(--muted);font-weight:900;background:var(--soft);border-radius:18px;border:1px dashed var(--border)}
+  </style>
+</head>
+<body>
+
+  <nav class="top">
+    <div class="brand">Posts</div>
+    <a class="btn" href="{% url 'profile' user_obj.username %}">Back</a>
+  </nav>
+
+  <main class="wrap">
+    <div class="title">@{{ user_obj.username }} • Posts</div>
+
+    {% for p in posts %}
+      <div class="post">
+        <div class="meta">{{ p.created_at|date:"M d, Y • H:i" }}</div>
+        <div class="txt">{{ p.content }}</div>
+      </div>
+    {% empty %}
+      <div class="empty">No posts yet.</div>
+    {% endfor %}
+  </main>
+</body>
+</html>
